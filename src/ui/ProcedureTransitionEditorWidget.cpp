@@ -1,0 +1,88 @@
+#include "ProcedureTransitionEditorWidget.h"
+#include "EditorFieldHelpers.h"
+
+#include <QFormLayout>
+#include <QGroupBox>
+#include <QLineEdit>
+#include <QPlainTextEdit>
+#include <QSignalBlocker>
+#include <QVBoxLayout>
+
+using namespace navstud::model;
+using namespace navstud::userdata;
+using namespace navstud::ui;
+
+// -----------------------------------------------------------------------------------------------------------
+// Construit l'éditeur de transition de procédure : crée les champs de
+// saisie, le formulaire, la zone d'aperçu et connecte les signaux.
+ProcedureTransitionEditorWidget::ProcedureTransitionEditorWidget(QWidget* parent)
+    : QWidget(parent)
+{
+    mProcedureIdentEdit   = makeIdentField(this, 6);
+    mLegSequenceIdentEdit = makeIdentField(this, 6);
+
+    auto* form = new QFormLayout;
+    form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    form->addRow(QStringLiteral("Ident Procedure"), mProcedureIdentEdit);
+    form->addRow(QStringLiteral("Ident séquence"), mLegSequenceIdentEdit);
+
+    auto* formGroup = new QGroupBox(QStringLiteral("Saisie — PROCEDURETRANSITION"), this);
+    formGroup->setLayout(form);
+
+    mPreview = new QPlainTextEdit(this);
+    mPreview->setReadOnly(true);
+    mPreview->setMaximumHeight(64);
+    mPreview->setLineWrapMode(QPlainTextEdit::NoWrap);
+
+    auto* previewLayout = new QVBoxLayout;
+    previewLayout->addWidget(mPreview);
+    auto* previewGroup = new QGroupBox(
+        QStringLiteral("Aperçu — ligne PROCEDURETRANSITION (_ProcTransSID.txt / _ProcTransSTAR.txt selon l'onglet)"), this);
+    previewGroup->setLayout(previewLayout);
+
+    auto* mainLayout = new QVBoxLayout(this);
+    mainLayout->addWidget(formGroup, 0, Qt::AlignLeft);
+    mainLayout->addWidget(previewGroup);
+    mainLayout->addStretch(1);
+
+    connect(mProcedureIdentEdit, &QLineEdit::textChanged, this, &ProcedureTransitionEditorWidget::valueEdited);
+    connect(mLegSequenceIdentEdit, &QLineEdit::textChanged, this, &ProcedureTransitionEditorWidget::valueEdited);
+}
+
+// -----------------------------------------------------------------------------------------------------------
+// Charge les valeurs de la transition dans les champs de saisie, signaux
+// bloqués pour éviter de redéclencher l'émission de valueEdited().
+void ProcedureTransitionEditorWidget::setValue(ProcedureTransitionId id, const UserProcedureTransition& transition)
+{
+    mCurrentId = id;
+    const QSignalBlocker b1(mProcedureIdentEdit);
+    const QSignalBlocker b2(mLegSequenceIdentEdit);
+
+    mProcedureIdentEdit->setText(transition.procedureIdent);
+    mLegSequenceIdentEdit->setText(transition.legSequenceIdent);
+}
+
+// -----------------------------------------------------------------------------------------------------------
+// Lit les valeurs saisies et retourne l'entité UserProcedureTransition.
+UserProcedureTransition ProcedureTransitionEditorWidget::value() const
+{
+    UserProcedureTransition t;
+    t.procedureIdent   = mProcedureIdentEdit->text();
+    t.legSequenceIdent = mLegSequenceIdentEdit->text();
+    return t;
+}
+
+// -----------------------------------------------------------------------------------------------------------
+// Donne le focus au champ d'ident procedure et sélectionne son contenu.
+void ProcedureTransitionEditorWidget::focusFirstField()
+{
+    mProcedureIdentEdit->setFocus();
+    mProcedureIdentEdit->selectAll();
+}
+
+// -----------------------------------------------------------------------------------------------------------
+// Affiche le texte donné dans la zone d'aperçu.
+void ProcedureTransitionEditorWidget::setPreviewLine(const QString& text)
+{
+    mPreview->setPlainText(text);
+}

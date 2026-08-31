@@ -1,0 +1,25 @@
+# -------------------------------
+# FICHIERS ET DOSSIERS NON SUIVIS
+# -------------------------------
+
+# -----
+# macOS
+# -----
+
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+
+
+
+# ------
+# Projet
+# ------
+
+.qtcreator
+build/
+build2/
+z_*/
+nav1.txt
+nav*

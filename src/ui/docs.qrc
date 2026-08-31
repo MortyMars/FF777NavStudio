@@ -1,0 +1,24 @@
+<RCC>
+
+	<qresource prefix="/">
+        <!--
+            - avec le préfixe, le chemin VIRTUEL du fichier est :/Readme.md
+              c'est ce chemin qui doit être employé dans le code
+            - le chemin RÉEL du fichier est relatif au dossier de compilation
+              d'où la forme ../../Readme.md
+        -->
+    	<file alias="Readme.md">../../Readme.md</file>
+	</qresource>
+    
+
+    <qresource prefix="/">
+        <!--
+            - avec le préfixe, le chemin VIRTUEL de l'icone est :/app_icon.png
+              c'est ce chemin qui doit être employé dans le code
+            - le chemin RÉEL du fichier est relatif au dossier de compilation 
+              d'où la forme ../../icones/small_app_icon.png
+        -->
+    	<file alias="app_icon.png">../../icones/small_app_icon.png</file>
+	</qresource>
+
+</RCC>
