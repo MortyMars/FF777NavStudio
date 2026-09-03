@@ -1,8 +1,3 @@
-#include "PointEditorWidget.h"
-#include "NavDataWriter.h"
-#include "TextFormat.h" // writer::format::fixed — même formatage que la ligne texte réelle, décimales par champ
-#include "UserToModelConverter.h"
-
 #include <QComboBox>
 #include <QDoubleValidator>
 #include <QFormLayout>
@@ -12,6 +7,11 @@
 #include <QPlainTextEdit>
 #include <QSignalBlocker>
 #include <QVBoxLayout>
+
+#include "PointEditorWidget.h"
+#include "NavDataWriter.h"
+#include "TextFormat.h" // writer::format::fixed — même formatage que la ligne texte réelle, décimales par champ
+#include "UserToModelConverter.h"
 
 using namespace navstud::model;
 using namespace navstud::userdata;

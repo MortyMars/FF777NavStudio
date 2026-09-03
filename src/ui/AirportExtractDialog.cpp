@@ -1,9 +1,3 @@
-#include "AirportExtractDialog.h"
-
-#include "ExtractedProjectBuilder.h"
-#include "Nav1DbPipeline.h"
-#include "WorldIndexReader.h"
-
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
@@ -22,8 +16,14 @@
 #include <QtConcurrent>
 
 #include <memory>
+//#include <functional>
 
-#include <functional>
+#include "AirportExtractDialog.h"
+#include "ExtractedProjectBuilder.h"
+#include "Nav1DbPipeline.h"
+#include "WorldIndexReader.h"
+
+
 
 AirportExtractDialog::AirportExtractDialog(navstud::persistence::ProjectStore& store, QWidget* parent)
     : QDialog(parent)

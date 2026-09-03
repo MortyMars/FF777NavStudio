@@ -1,26 +1,3 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-
-#include "AirportEditorWidget.h"
-#include "AirportExtractDialog.h"
-#include "ApproachEditorWidget.h"
-#include "ApproachTransitionEditorWidget.h"
-#include "GenericTableModel.h"
-#include "LegEditorWidget.h"
-#include "LegSequenceEditorWidget.h"
-#include "NavDataWriter.h"
-#include "NavaidEditorWidget.h"
-#include "PointEditorWidget.h"
-#include "ProcedureEditorWidget.h"
-#include "ProcedureTransitionEditorWidget.h"
-#include "RunwayEditorWidget.h"
-#include "RunwayProcedureTransitionEditorWidget.h"
-#include "TableColumnHelpers.h"
-#include "UnitConverterWidget.h"
-#include "WaypointEditorWidget.h"
-#include "WorldIndexReader.h"
-#include "Nav1DbPipeline.h"
-
 #include <QAction>
 #include <QDialog>
 #include <QDir>
@@ -58,6 +35,29 @@
 
 #include <functional>
 
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+
+#include "AirportEditorWidget.h"
+#include "AirportExtractDialog.h"
+#include "ApproachEditorWidget.h"
+#include "ApproachTransitionEditorWidget.h"
+#include "GenericTableModel.h"
+#include "LegEditorWidget.h"
+#include "LegSequenceEditorWidget.h"
+#include "NavDataWriter.h"
+#include "NavaidEditorWidget.h"
+#include "PointEditorWidget.h"
+#include "ProcedureEditorWidget.h"
+#include "ProcedureTransitionEditorWidget.h"
+#include "RunwayEditorWidget.h"
+#include "RunwayProcedureTransitionEditorWidget.h"
+#include "TableColumnHelpers.h"
+#include "UnitConverterWidget.h"
+#include "WaypointEditorWidget.h"
+#include "WorldIndexReader.h"
+#include "Nav1DbPipeline.h"
+
 // -----------------------------------------------------------------------------
 // Fractionneur à 50/50 : redécoupe les deux volets à largeur égale à chaque
 // redimensionnement (et au changement d'onglet, puisqu'un onglet caché est
@@ -90,7 +90,8 @@ using namespace navstud::validator;
 using namespace navstud::ui;
 using namespace navstud::writer;
 
-// -----------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------
+// CONSTRUCTEUR DE LA CLASSE 'MAINWINDOW'
 // Construit la fenêtre principale : ouvre la base SQLite, crée le menu,
 // la barre d'outils et les onglets d'édition.
 MainWindow::MainWindow(QWidget *parent)
@@ -99,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // -------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------
     // Base SQLite
     const QString appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(appDataDir);
@@ -111,30 +112,34 @@ MainWindow::MainWindow(QWidget *parent)
                                QStringLiteral("Impossible d'ouvrir %1 : %2").arg(dbPath, storeError));
     }
 
-    // -------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------
     // Menu principal + barre d'outils.
     // Chaque bloc est ouvert par un simple « titre de bloc » (action
     // désactivée, mise en gras) : l'ensemble des actions reste visible d'un
     // seul coup d'œil, sans sous-menu héarchique.
     auto* mainMenu = menuBar()->addMenu(QStringLiteral("Fichier"));
 
-    // Titre de bloc non actionnable servant d'entête : en capitales, police
-    // simple et couleur système (rien de flashy).
+    // ===================================================================
+    // ADDBLOCKTITLE
+    // Méthode créant un titre de bloc non cliquable servant d'entête
     auto addBlockTitle = [mainMenu](const QString& title) {
-        auto* headerLabel = new QLabel(title.toUpper());
-        //headerLabel->setTextFormat(qtu);
-        //headerLabel->setTextFormat("<u>Texte souligné</u>");
+
+        auto* headerLabel = new QLabel(title);
+
         headerLabel->setContentsMargins(2, 0, 0, 0);
         auto* header = new QWidgetAction(mainMenu);
         header->setDefaultWidget(headerLabel);
         mainMenu->addAction(header);
-        //header->setEnabled(false);
-        header->setEnabled(true);   // 'true' uniquement pour une police visible
-        return header;
-    };
 
-    // --- Bloc Projets ---
-    addBlockTitle(QStringLiteral("  Projets :"));
+        header->setEnabled(true);   // 'true' pour une police visible
+
+        return header;
+
+    }; // !addBlockTitle =================================================
+
+
+    // BLOC DE MENUS 'PROJETS' ------------------------------------------------------------------------------
+    addBlockTitle(QStringLiteral("  PROJETS :"));
     QAction* newProjectAction  = mainMenu->addAction(QStringLiteral(" Nouveau projet"));
     QAction* openProjectAction = mainMenu->addAction(QStringLiteral(" Ouvrir un projet"));
     QAction* extractAirportAction = mainMenu->addAction(QStringLiteral(" Aéroport existant -> Projet"));
@@ -143,15 +148,17 @@ MainWindow::MainWindow(QWidget *parent)
                        "et crée (ou remplace) un projet SQLite dédié avec elles"));
     mainMenu->addSeparator();
 
-    // --- Bloc Base de données ---
-    addBlockTitle(QStringLiteral("  Base de données :"));
+
+    // BLOC DE MENUS 'BASE DE DONNÉES' ----------------------------------------------------------------------
+    addBlockTitle(QStringLiteral("  BASE de DONNÉES :"));
+
     mSaveAction = mainMenu->addAction(QStringLiteral("Enregistrer"));
     mSaveAction->setIcon(style()->standardIcon(QStyle::SP_DialogSaveButton));
     mSaveAction->setShortcut(QKeySequence::Save);
     mSaveAction->setToolTip(QStringLiteral("Enregistrer le projet (Ctrl+S)"));
     mSaveAction->setEnabled(false);
 
-    mReloadWorldAction = mainMenu->addAction(QStringLiteral(" Recharger le fichier mondial"));
+    mReloadWorldAction = mainMenu->addAction(QStringLiteral(" Recharger le fichier mondial 'nav1.txt'"));
     mReloadWorldAction->setToolTip(
         QStringLiteral("Réaligne les id du projet sur un fichier mondial mis à jour (nouvelles \"# Count:\")"));
     mReloadWorldAction->setEnabled(false);
@@ -161,10 +168,11 @@ MainWindow::MainWindow(QWidget *parent)
     mExportAction->setEnabled(false);
     mainMenu->addSeparator();
 
-    // --- Bloc Suite à MàJ Airacs ---
+
+    // BLOC DE MENUS 'SUITE À MÀJ AIRACS' -------------------------------------------------------------------
     // Pipeline nav1.db : décodage / intégration / réencodage. Les opérations
     // se déroulent dans le dossier de l'application (celui de l'exécutable).
-    addBlockTitle(QStringLiteral("  Suite à MàJ Airacs :"));
+    addBlockTitle(QStringLiteral("  SUITE à MàJ des AIRACS :"));
 
     auto* decodeWorldAction = mainMenu->addAction(QStringLiteral(" Décoder 'nav1.db' -> 'nav1.txt'"));
     mDecodeWorldAction = decodeWorldAction;
@@ -178,15 +186,24 @@ MainWindow::MainWindow(QWidget *parent)
         QStringLiteral("Intègre les 15 fichiers _Xxx.txt du projet dans le nav1.txt, réencode en nav1.db et copie le tout à la destination X-Plane"));
     integrateWorldAction->setEnabled(false);
 
-    /* MENU One-Shot désactivé (la méthode est toujours présente et active dans le code)
-    Était implémenté pour peupler initialement la base de données à partir de fichiers texte
+
+    /* ------------------------------------------------------------------------------------------------------
+    MENU ONE-SHOT DÉSACTIVÉ (la méthode associée est toujours présente et active dans le code)
+    Ce menu avait été créé pour peupler initialement la BDD avec les données de LFFA sans avoir à tout
+    ressaisir. Un jeu de fichier 'texte' spécifique (cf. dossier '/z_peuplBddOneShot'), au format spécifique
+    sans rapport avec les fichiers 'texte' produits par l'appli, a été créé pour l'occasion.
+
+    Menu :
     QAction* importAction = fileMenu->addAction(QStringLiteral("Importer depuis fichiers texte (one-shot)..."));
     importAction->setToolTip(
-        QStringLiteral("Crée un nouveau projet à partir de 15 fichiers .txt pré-extraits (points.txt, legs.txt, ...)"));
-    */
+        QStringLiteral("Crée un projet à partir de 15 fichiers .txt pré-extraits (points.txt, legs.txt, ...)"));
+
+    Connexion :
+    connect(importAction, &QAction::triggered, this, &MainWindow::onImportFromTextFiles);
+    ------------------------------------------------------------------------------------------------------ */
+
 
     auto* toolBar = addToolBar(QStringLiteral("Principal"));
-    //toolBar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
     toolBar->setToolButtonStyle(Qt::ToolButtonIconOnly);
     toolBar->setIconSize(QSize(24, 24));
     toolBar->addAction(mSaveAction);
@@ -213,45 +230,53 @@ MainWindow::MainWindow(QWidget *parent)
     convertersContainer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     toolBar->addWidget(convertersContainer);
 
-    connect(newProjectAction, &QAction::triggered, this, &MainWindow::onNewProject);
-    connect(openProjectAction, &QAction::triggered, this, &MainWindow::onOpenProject);
-    connect(mSaveAction, &QAction::triggered, this, &MainWindow::onSaveProject);
-    connect(mReloadWorldAction, &QAction::triggered, this, &MainWindow::onReloadWorldFile);
-    connect(mExportAction, &QAction::triggered, this, &MainWindow::onExportFiles);
-    connect(decodeWorldAction, &QAction::triggered, this, &MainWindow::onDecodeWorldFile);
-    connect(integrateWorldAction, &QAction::triggered, this, &MainWindow::onIntegrateWorldFile);
-    connect(extractAirportAction, &QAction::triggered, this, &MainWindow::onExtractAirport);
 
-    // -------------------------------------------------------------------------------------------------------
-    // Menu Aide.
+    // Connexion
+    connect(newProjectAction,       &QAction::triggered, this, &MainWindow::onNewProject);
+    connect(openProjectAction,      &QAction::triggered, this, &MainWindow::onOpenProject);
+    connect(mSaveAction,            &QAction::triggered, this, &MainWindow::onSaveProject);
+    connect(mReloadWorldAction,     &QAction::triggered, this, &MainWindow::onReloadWorldFile);
+    connect(mExportAction,          &QAction::triggered, this, &MainWindow::onExportFiles);
+    connect(decodeWorldAction,      &QAction::triggered, this, &MainWindow::onDecodeWorldFile);
+    connect(integrateWorldAction,   &QAction::triggered, this, &MainWindow::onIntegrateWorldFile);
+    connect(extractAirportAction,   &QAction::triggered, this, &MainWindow::onExtractAirport);
+
+    // ------------------------------------------------------------------------------------------------------
+    // MENU AIDE
     auto* helpMenu = menuBar()->addMenu(QStringLiteral("Aide"));
+    // À propos
     QAction* aboutAction = helpMenu->addAction(QStringLiteral("À propos ..."));
-    connect(aboutAction, &QAction::triggered, this, &MainWindow::onAbout);
+    connect(aboutAction,            &QAction::triggered, this, &MainWindow::onAbout);
+    // Objectifs
     QAction* documentationAction = helpMenu->addAction(QStringLiteral("Objectifs ..."));
-    connect(documentationAction, &QAction::triggered, this, &MainWindow::onDocumentation);
-
-    /* MENU One-Shot désactivé (suite) : neutralisation de la connexion
-    connect(importAction, &QAction::triggered, this, &MainWindow::onImportFromTextFiles);
-    */
+    connect(documentationAction,    &QAction::triggered, this, &MainWindow::onDocumentation);
 
 
-    // -------------------------------------------------------------------------------------------------------
+
+
+
+    // ------------------------------------------------------------------------------------------------------
     // Onglets — un par structure. Point n'a pas besoin de régénération
     // (aucune résolution d'ident), les 4 autres si.
     auto* tabs = new QTabWidget(this);
 
     // --- Point ---
-    mPointModel = new GenericTableModel(orderFnFor(&mProject.points()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident"), &mProject.points(), &UserPoint::ident),
-        doubleColumn(QStringLiteral("Latitude"), &mProject.points(), &UserPoint::latitude, 12),
-        doubleColumn(QStringLiteral("Longitude"), &mProject.points(), &UserPoint::longitude, 12),
-        doubleColumn(QStringLiteral("Var. magn."), &mProject.points(), &UserPoint::magVar, 6),
-        doubleColumn(QStringLiteral("Cap hold"), &mProject.points(), &UserPoint::holdCourse, 6),
-        doubleColumn(QStringLiteral("Dist hold (m)"), &mProject.points(), &UserPoint::holdDistInMeters, 3),
-        doubleColumn(QStringLiteral("Temps hold"), &mProject.points(), &UserPoint::holdTime, 3),
-        intColumn(QStringLiteral("Sens hold"), &mProject.points(), &UserPoint::holdSide),
-    }, this);
+    mPointModel = new GenericTableModel(
+        orderFnFor(&mProject.points()),
+        {
+            idColumn(),
+            textColumn(QStringLiteral("Ident"), &mProject.points(), &UserPoint::ident),
+            doubleColumn(QStringLiteral("Latitude"), &mProject.points(), &UserPoint::latitude, 12),
+            doubleColumn(QStringLiteral("Longitude"), &mProject.points(), &UserPoint::longitude, 12),
+            doubleColumn(QStringLiteral("Var. magn."), &mProject.points(), &UserPoint::magVar, 6),
+            doubleColumn(QStringLiteral("Cap hold"), &mProject.points(), &UserPoint::holdCourse, 6),
+            doubleColumn(QStringLiteral("Dist hold (m)"), &mProject.points(), &UserPoint::holdDistInMeters, 3),
+            doubleColumn(QStringLiteral("Temps hold"), &mProject.points(), &UserPoint::holdTime, 3),
+            intColumn(QStringLiteral("Sens hold"), &mProject.points(), &UserPoint::holdSide),
+        },
+        this
+    );
+
     mPointTable = new QTableView(this);
     mPointProxy = new QSortFilterProxyModel(this);
     mPointProxy->setSourceModel(mPointModel);
@@ -263,28 +288,77 @@ MainWindow::MainWindow(QWidget *parent)
     mPointTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mPointEditor = new PointEditorWidget(this);
     mPointEditor->setEnabled(false);
+
     auto* newPointButton = new QPushButton(QStringLiteral("Nouveau point"), this);
     auto* deletePointButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newPointButton, deletePointButton, mPointTable, mPointEditor), QStringLiteral("Point"));
-    connect(mPointTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onPointSelectionChanged);
-    connect(newPointButton, &QPushButton::clicked, this, &MainWindow::onNewPoint);
-    connect(deletePointButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mPointTable, mPointModel, mPointProxy, mPointEditor,
-                         [this](qint32 rawId) { return mProject.points().remove(PointId(rawId)); },
-                         [this]() { mCurrentPointId = PointId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.points();
-                             if (!table.order().isEmpty())
+
+    tabs->addTab(
+        buildTabLayout(
+            newPointButton,
+            deletePointButton,
+            mPointTable,
+            mPointEditor
+        ),
+        QStringLiteral("Point")
+    );
+
+    connect(
+        mPointTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this, &MainWindow::
+        onPointSelectionChanged
+    );
+
+    connect(
+        newPointButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewPoint
+    );
+
+    connect(
+        deletePointButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mPointTable,
+                mPointModel,
+                mPointProxy,
+                mPointEditor,
+                [this](qint32 rawId) {
+                    return mProject.points().remove(PointId(rawId));
+                },
+                [this]() {
+                    mCurrentPointId = PointId::invalid();
+                },
+                [this]() {
+                        auto& table = mProject.points();
+                        if (!table.order().isEmpty())
                                  table.renumberFrom(table.order().first().value());
-                         });
-    });
+                }
+            );
+        }
+    );
+
     connect(mPointEditor, &PointEditorWidget::valueEdited, this, &MainWindow::onPointEdited);
 
+
+
     // --- Waypoint ---
-    mWaypointModel = new GenericTableModel(orderFnFor(&mProject.waypoints()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Point"), &mProject.waypoints(), &UserWaypoint::pointIdent),
-    }, this);
+    mWaypointModel = new GenericTableModel(
+        orderFnFor(&mProject.waypoints()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Point"),
+                &mProject.waypoints(),
+                &UserWaypoint::pointIdent
+            ),
+        },
+        this
+    );
+
     mWaypointTable = new QTableView(this);
     mWaypointProxy = new QSortFilterProxyModel(this);
     mWaypointProxy->setSourceModel(mWaypointModel);
@@ -296,33 +370,106 @@ MainWindow::MainWindow(QWidget *parent)
     mWaypointTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mWaypointEditor = new WaypointEditorWidget(this);
     mWaypointEditor->setEnabled(false);
+
     auto* newWaypointButton = new QPushButton(QStringLiteral("Nouveau waypoint"), this);
     auto* deleteWaypointButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newWaypointButton, deleteWaypointButton, mWaypointTable, mWaypointEditor), QStringLiteral("Waypoint"));
-    connect(mWaypointTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onWaypointSelectionChanged);
-    connect(newWaypointButton, &QPushButton::clicked, this, &MainWindow::onNewWaypoint);
-    connect(deleteWaypointButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mWaypointTable, mWaypointModel, mWaypointProxy, mWaypointEditor,
-                         [this](qint32 rawId) { return mProject.waypoints().remove(WaypointId(rawId)); },
-                         [this]() { mCurrentWaypointId = WaypointId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.waypoints();
-                             if (!table.order().isEmpty())
+
+    tabs->addTab(
+        buildTabLayout(
+            newWaypointButton,
+            deleteWaypointButton,
+            mWaypointTable,
+            mWaypointEditor
+        ),
+        QStringLiteral("Waypoint")
+    );
+
+    connect(mWaypointTable->selectionModel(),
+            &QItemSelectionModel::currentRowChanged,
+            this,
+            &MainWindow::onWaypointSelectionChanged
+    );
+
+    connect(
+        newWaypointButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewWaypoint
+    );
+
+    connect(
+        deleteWaypointButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mWaypointTable, mWaypointModel, mWaypointProxy, mWaypointEditor,
+                        [this](qint32 rawId) {
+                            return mProject.waypoints().remove(WaypointId(rawId));
+                        },
+                        [this]() {
+                            mCurrentWaypointId = WaypointId::invalid();
+                        },
+                        [this]() {
+                            auto& table = mProject.waypoints();
+                            if (!table.order().isEmpty())
                                  table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mWaypointEditor, &WaypointEditorWidget::valueEdited, this, &MainWindow::onWaypointEdited);
+                        }
+            );
+        }
+    );
+
+    connect(
+        mWaypointEditor,
+        &WaypointEditorWidget::valueEdited,
+        this,
+        &MainWindow::onWaypointEdited
+    );
 
     // --- Airport ---
-    mAirportModel = new GenericTableModel(orderFnFor(&mProject.airports()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Point"), &mProject.airports(), &UserAirport::pointIdent),
-        doubleColumn(QStringLiteral("Élévation (m)"), &mProject.airports(), &UserAirport::elevationInMeters, 6),
-        doubleColumn(QStringLiteral("Lim. vitesse"), &mProject.airports(), &UserAirport::limitSpeedInMetersPerSec, 6),
-        doubleColumn(QStringLiteral("Lim. altitude"), &mProject.airports(), &UserAirport::limitAltitudeInMeters, 6),
-        doubleColumn(QStringLiteral("Alt. transition"), &mProject.airports(), &UserAirport::transitionAltitudeInMeters, 6),
-        doubleColumn(QStringLiteral("Niv. transition"), &mProject.airports(), &UserAirport::transitionLevelInMeters, 6),
-    }, this);
+    mAirportModel = new GenericTableModel(
+        orderFnFor(&mProject.airports()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Point"),
+                &mProject.airports(),
+                &UserAirport::pointIdent
+            ),
+            doubleColumn(
+                QStringLiteral("Élévation (m)"),
+                &mProject.airports(),
+                &UserAirport::elevationInMeters,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Lim. vitesse"),
+                &mProject.airports(),
+                &UserAirport::limitSpeedInMetersPerSec,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Lim. altitude"),
+                &mProject.airports(),
+                &UserAirport::limitAltitudeInMeters,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Alt. transition"),
+                &mProject.airports(),
+                &UserAirport::transitionAltitudeInMeters,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Niv. transition"),
+                &mProject.airports(),
+                &UserAirport::transitionLevelInMeters,
+                6
+            ),
+        },
+        this
+    );
+
     mAirportTable = new QTableView(this);
     mAirportProxy = new QSortFilterProxyModel(this);
     mAirportProxy->setSourceModel(mAirportModel);
@@ -334,21 +481,59 @@ MainWindow::MainWindow(QWidget *parent)
     mAirportTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mAirportEditor = new AirportEditorWidget(this);
     mAirportEditor->setEnabled(false);
+
     auto* newAirportButton = new QPushButton(QStringLiteral("Nouvel airport"), this);
     auto* deleteAirportButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newAirportButton, deleteAirportButton, mAirportTable, mAirportEditor), QStringLiteral("Airport"));
-    connect(mAirportTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onAirportSelectionChanged);
-    connect(newAirportButton, &QPushButton::clicked, this, &MainWindow::onNewAirport);
-    connect(deleteAirportButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mAirportTable, mAirportModel, mAirportProxy, mAirportEditor,
-                         [this](qint32 rawId) { return mProject.airports().remove(AirportId(rawId)); },
-                         [this]() { mCurrentAirportId = AirportId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.airports();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
+
+    tabs->addTab(
+        buildTabLayout(
+            newAirportButton,
+            deleteAirportButton,
+            mAirportTable,
+            mAirportEditor
+        ),
+        QStringLiteral("Airport")
+    );
+
+    connect(
+        mAirportTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onAirportSelectionChanged
+    );
+
+    connect(
+        newAirportButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewAirport
+    );
+
+    connect(
+        deleteAirportButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mAirportTable,
+                mAirportModel,
+                mAirportProxy,
+                mAirportEditor,
+                [this](qint32 rawId) {
+                    return mProject.airports().remove(AirportId(rawId));
+                },
+                [this]() {
+                    mCurrentAirportId = AirportId::invalid();
+                },
+                [this]() {
+                    auto& table = mProject.airports();
+                    if (!table.order().isEmpty())
+                            table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
     connect(mAirportEditor, &AirportEditorWidget::valueEdited, this, &MainWindow::onAirportEdited);
 
     // --- Runway ---
@@ -627,11 +812,23 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mSidProcedureEditor, &ProcedureEditorWidget::valueEdited, this, &MainWindow::onSidProcedureEdited);
 
     // --- Procedure STAR ---
-    mStarProcedureModel = new GenericTableModel(orderFnFor(&mProject.starProcedures()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Airport"), &mProject.starProcedures(), &UserProcedure::airportIdent),
-        textColumn(QStringLiteral("Ident séquence"), &mProject.starProcedures(), &UserProcedure::legSequenceIdent),
-    }, this);
+    mStarProcedureModel = new GenericTableModel(
+        orderFnFor(&mProject.starProcedures()), {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Airport"),
+                &mProject.starProcedures(),
+                &UserProcedure::airportIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident séquence"),
+                &mProject.starProcedures(),
+                &UserProcedure::legSequenceIdent
+            ),
+        },
+        this
+    );
+
     mStarProcedureTable = new QTableView(this);
     mStarProcedureProxy = new QSortFilterProxyModel(this);
     mStarProcedureProxy->setSourceModel(mStarProcedureModel);
@@ -643,31 +840,80 @@ MainWindow::MainWindow(QWidget *parent)
     mStarProcedureTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mStarProcedureEditor = new ProcedureEditorWidget(this);
     mStarProcedureEditor->setEnabled(false);
+
     auto* newStarProcedureButton = new QPushButton(QStringLiteral("Nouvelle STAR"), this);
     auto* deleteStarProcedureButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newStarProcedureButton, deleteStarProcedureButton, mStarProcedureTable, mStarProcedureEditor),
-                 QStringLiteral("Procedure STAR"));
-    connect(mStarProcedureTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
-            &MainWindow::onStarProcedureSelectionChanged);
-    connect(newStarProcedureButton, &QPushButton::clicked, this, &MainWindow::onNewStarProcedure);
-    connect(deleteStarProcedureButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mStarProcedureTable, mStarProcedureModel, mStarProcedureProxy, mStarProcedureEditor,
-                         [this](qint32 rawId) { return mProject.starProcedures().remove(ProcedureId(rawId)); },
-                         [this]() { mCurrentStarProcedureId = ProcedureId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.starProcedures();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mStarProcedureEditor, &ProcedureEditorWidget::valueEdited, this, &MainWindow::onStarProcedureEdited);
+
+    tabs->addTab(
+        buildTabLayout(
+            newStarProcedureButton,
+            deleteStarProcedureButton,
+            mStarProcedureTable,
+            mStarProcedureEditor
+        ),
+        QStringLiteral("Procedure STAR")
+    );
+
+    connect(
+        mStarProcedureTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onStarProcedureSelectionChanged
+    );
+
+    connect(newStarProcedureButton,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::onNewStarProcedure
+    );
+
+    connect(
+        deleteStarProcedureButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mStarProcedureTable,
+                mStarProcedureModel,
+                mStarProcedureProxy,
+                mStarProcedureEditor,
+                [this](qint32 rawId) { return mProject.starProcedures().remove(ProcedureId(rawId)); },
+                [this]() { mCurrentStarProcedureId = ProcedureId::invalid(); },
+                [this]() {
+                    auto& table = mProject.starProcedures();
+                    if (!table.order().isEmpty())
+                            table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
+    connect(
+        mStarProcedureEditor,
+        &ProcedureEditorWidget::valueEdited,
+        this,
+        &MainWindow::onStarProcedureEdited
+    );
 
     // --- ProcedureTransition SID ---
-    mSidProcedureTransitionModel = new GenericTableModel(orderFnFor(&mProject.sidProcedureTransitions()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Procedure"), &mProject.sidProcedureTransitions(), &UserProcedureTransition::procedureIdent),
-        textColumn(QStringLiteral("Ident séquence"), &mProject.sidProcedureTransitions(), &UserProcedureTransition::legSequenceIdent),
-    }, this);
+    mSidProcedureTransitionModel =
+        new GenericTableModel(
+            orderFnFor(
+                &mProject.sidProcedureTransitions()),
+                {
+                    idColumn(),
+                    textColumn(QStringLiteral("Ident Procedure"),
+                    &mProject.sidProcedureTransitions(),
+                    &UserProcedureTransition::procedureIdent),
+                    textColumn(
+                        QStringLiteral("Ident séquence"),
+                        &mProject.sidProcedureTransitions(),
+                        &UserProcedureTransition::legSequenceIdent
+                    ),
+                },
+                this
+        );
+
     mSidProcedureTransitionTable = new QTableView(this);
     mSidProcedureTransitionProxy = new QSortFilterProxyModel(this);
     mSidProcedureTransitionProxy->setSourceModel(mSidProcedureTransitionModel);
@@ -679,32 +925,86 @@ MainWindow::MainWindow(QWidget *parent)
     mSidProcedureTransitionTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mSidProcedureTransitionEditor = new ProcedureTransitionEditorWidget(this);
     mSidProcedureTransitionEditor->setEnabled(false);
-    auto* newSidProcedureTransitionButton = new QPushButton(QStringLiteral("Nouvelle transition SID"), this);
-    auto* deleteSidProcedureTransitionButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newSidProcedureTransitionButton, deleteSidProcedureTransitionButton, mSidProcedureTransitionTable,
-                                mSidProcedureTransitionEditor), QStringLiteral("ProcTrans SID"));
-    connect(mSidProcedureTransitionTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
-            &MainWindow::onSidProcedureTransitionSelectionChanged);
-    connect(newSidProcedureTransitionButton, &QPushButton::clicked, this, &MainWindow::onNewSidProcedureTransition);
-    connect(deleteSidProcedureTransitionButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mSidProcedureTransitionTable, mSidProcedureTransitionModel, mSidProcedureTransitionProxy, mSidProcedureTransitionEditor,
-                         [this](qint32 rawId) { return mProject.sidProcedureTransitions().remove(ProcedureTransitionId(rawId)); },
-                         [this]() { mCurrentSidProcedureTransitionId = ProcedureTransitionId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.sidProcedureTransitions();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mSidProcedureTransitionEditor, &ProcedureTransitionEditorWidget::valueEdited, this,
-            &MainWindow::onSidProcedureTransitionEdited);
+
+    auto* newSidProcedureTransitionButton =
+        new QPushButton(QStringLiteral("Nouvelle transition SID"), this);
+    auto* deleteSidProcedureTransitionButton =
+        new QPushButton(QStringLiteral("Supprimer"), this);
+
+    tabs->addTab(
+        buildTabLayout(
+            newSidProcedureTransitionButton,
+            deleteSidProcedureTransitionButton,
+            mSidProcedureTransitionTable,
+            mSidProcedureTransitionEditor
+        ),
+        QStringLiteral("ProcTrans SID")
+    );
+
+    connect(
+        mSidProcedureTransitionTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onSidProcedureTransitionSelectionChanged
+    );
+
+    connect(
+        newSidProcedureTransitionButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewSidProcedureTransition
+    );
+
+    connect(
+        deleteSidProcedureTransitionButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                    mSidProcedureTransitionTable,
+                    mSidProcedureTransitionModel,
+                    mSidProcedureTransitionProxy,
+                    mSidProcedureTransitionEditor,
+                    [this](qint32 rawId) {
+                        return mProject.sidProcedureTransitions().remove(ProcedureTransitionId(rawId));
+                    },
+                    [this]() {
+                        mCurrentSidProcedureTransitionId = ProcedureTransitionId::invalid();
+                    },
+                    [this]() {
+                        auto& table = mProject.sidProcedureTransitions();
+                        if (!table.order().isEmpty())
+                             table.renumberFrom(table.order().first().value());
+                    }
+                );
+        }
+    );
+
+    connect(
+        mSidProcedureTransitionEditor,
+        &ProcedureTransitionEditorWidget::valueEdited,
+        this,
+        &MainWindow::onSidProcedureTransitionEdited
+    );
 
     // --- ProcedureTransition STAR ---
-    mStarProcedureTransitionModel = new GenericTableModel(orderFnFor(&mProject.starProcedureTransitions()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Procedure"), &mProject.starProcedureTransitions(), &UserProcedureTransition::procedureIdent),
-        textColumn(QStringLiteral("Ident séquence"), &mProject.starProcedureTransitions(), &UserProcedureTransition::legSequenceIdent),
-    }, this);
+    mStarProcedureTransitionModel = new GenericTableModel(
+        orderFnFor(&mProject.starProcedureTransitions()), {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Procedure"),
+                &mProject.starProcedureTransitions(),
+                &UserProcedureTransition::procedureIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident séquence"),
+                &mProject.starProcedureTransitions(),
+                &UserProcedureTransition::legSequenceIdent
+            ),
+        },
+        this
+    );
+
     mStarProcedureTransitionTable = new QTableView(this);
     mStarProcedureTransitionProxy = new QSortFilterProxyModel(this);
     mStarProcedureTransitionProxy->setSourceModel(mStarProcedureTransitionModel);
@@ -716,33 +1016,81 @@ MainWindow::MainWindow(QWidget *parent)
     mStarProcedureTransitionTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mStarProcedureTransitionEditor = new ProcedureTransitionEditorWidget(this);
     mStarProcedureTransitionEditor->setEnabled(false);
+
     auto* newStarProcedureTransitionButton = new QPushButton(QStringLiteral("Nouvelle transition STAR"), this);
     auto* deleteStarProcedureTransitionButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newStarProcedureTransitionButton, deleteStarProcedureTransitionButton, mStarProcedureTransitionTable,
-                                mStarProcedureTransitionEditor), QStringLiteral("ProcTrans STAR"));
-    connect(mStarProcedureTransitionTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
-            &MainWindow::onStarProcedureTransitionSelectionChanged);
+
+    tabs->addTab(
+        buildTabLayout(
+            newStarProcedureTransitionButton,
+            deleteStarProcedureTransitionButton,
+            mStarProcedureTransitionTable,
+            mStarProcedureTransitionEditor
+        ),
+        QStringLiteral("ProcTrans STAR")
+    );
+
+    connect(mStarProcedureTransitionTable->selectionModel(),
+            &QItemSelectionModel::currentRowChanged,
+            this,
+            &MainWindow::onStarProcedureTransitionSelectionChanged
+    );
+
     connect(newStarProcedureTransitionButton, &QPushButton::clicked, this, &MainWindow::onNewStarProcedureTransition);
-    connect(deleteStarProcedureTransitionButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mStarProcedureTransitionTable, mStarProcedureTransitionModel, mStarProcedureTransitionProxy, mStarProcedureTransitionEditor,
-                         [this](qint32 rawId) { return mProject.starProcedureTransitions().remove(ProcedureTransitionId(rawId)); },
-                         [this]() { mCurrentStarProcedureTransitionId = ProcedureTransitionId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.starProcedureTransitions();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
+
+    connect(
+        deleteStarProcedureTransitionButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mStarProcedureTransitionTable,
+                mStarProcedureTransitionModel,
+                mStarProcedureTransitionProxy,
+                mStarProcedureTransitionEditor,
+                [this](qint32 rawId) {
+                    return mProject.starProcedureTransitions().remove(ProcedureTransitionId(rawId));
+                },
+                [this]() {
+                    mCurrentStarProcedureTransitionId = ProcedureTransitionId::invalid();
+                },
+                [this]() {
+                    auto& table = mProject.starProcedureTransitions();
+                    if (!table.order().isEmpty())
+                            table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
     connect(mStarProcedureTransitionEditor, &ProcedureTransitionEditorWidget::valueEdited, this,
             &MainWindow::onStarProcedureTransitionEdited);
 
     // --- RunwayProcedureTransition SID ---
-    mSidRunwayProcedureTransitionModel = new GenericTableModel(orderFnFor(&mProject.sidRunwayProcedureTransitions()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Runway"), &mProject.sidRunwayProcedureTransitions(), &UserRunwayProcedureTransition::runwayIdent),
-        textColumn(QStringLiteral("Ident Procedure"), &mProject.sidRunwayProcedureTransitions(), &UserRunwayProcedureTransition::procedureIdent),
-        textColumn(QStringLiteral("Ident séquence"), &mProject.sidRunwayProcedureTransitions(), &UserRunwayProcedureTransition::legSequenceIdent),
-    }, this);
+    mSidRunwayProcedureTransitionModel =
+        new GenericTableModel(
+            orderFnFor(&mProject.sidRunwayProcedureTransitions()),
+            {
+                idColumn(),
+                textColumn(
+                    QStringLiteral("Ident Runway"),
+                    &mProject.sidRunwayProcedureTransitions(),
+                    &UserRunwayProcedureTransition::runwayIdent
+                ),
+                textColumn(
+                    QStringLiteral("Ident Procedure"),
+                    &mProject.sidRunwayProcedureTransitions(),
+                    &UserRunwayProcedureTransition::procedureIdent
+                ),
+                textColumn(
+                    QStringLiteral("Ident séquence"),
+                    &mProject.sidRunwayProcedureTransitions(),
+                    &UserRunwayProcedureTransition::legSequenceIdent
+                ),
+            },
+            this
+        );
+
     mSidRunwayProcedureTransitionTable = new QTableView(this);
     mSidRunwayProcedureTransitionProxy = new QSortFilterProxyModel(this);
     mSidRunwayProcedureTransitionProxy->setSourceModel(mSidRunwayProcedureTransitionModel);
@@ -754,35 +1102,87 @@ MainWindow::MainWindow(QWidget *parent)
     mSidRunwayProcedureTransitionTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mSidRunwayProcedureTransitionEditor = new RunwayProcedureTransitionEditorWidget(this);
     mSidRunwayProcedureTransitionEditor->setEnabled(false);
+
     auto* newSidRunwayProcedureTransitionButton = new QPushButton(QStringLiteral("Nouvelle RPT SID"), this);
     auto* deleteSidRunwayProcedureTransitionButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newSidRunwayProcedureTransitionButton, deleteSidRunwayProcedureTransitionButton, mSidRunwayProcedureTransitionTable,
-                                 mSidRunwayProcedureTransitionEditor),
-                 QStringLiteral("RunProcTrans SID"));
-    connect(mSidRunwayProcedureTransitionTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
-            &MainWindow::onSidRunwayProcedureTransitionSelectionChanged);
-    connect(newSidRunwayProcedureTransitionButton, &QPushButton::clicked, this, &MainWindow::onNewSidRunwayProcedureTransition);
-    connect(deleteSidRunwayProcedureTransitionButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mSidRunwayProcedureTransitionTable, mSidRunwayProcedureTransitionModel,
-                         mSidRunwayProcedureTransitionProxy, mSidRunwayProcedureTransitionEditor,
-                         [this](qint32 rawId) { return mProject.sidRunwayProcedureTransitions().remove(RunwayProcedureTransitionId(rawId)); },
-                         [this]() { mCurrentSidRunwayProcedureTransitionId = RunwayProcedureTransitionId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.sidRunwayProcedureTransitions();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mSidRunwayProcedureTransitionEditor, &RunwayProcedureTransitionEditorWidget::valueEdited, this,
-            &MainWindow::onSidRunwayProcedureTransitionEdited);
+
+    tabs->addTab(
+        buildTabLayout(
+            newSidRunwayProcedureTransitionButton,
+            deleteSidRunwayProcedureTransitionButton,
+            mSidRunwayProcedureTransitionTable,
+        mSidRunwayProcedureTransitionEditor
+        ),
+        QStringLiteral("RunProcTrans SID")
+    );
+
+    connect(
+        mSidRunwayProcedureTransitionTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onSidRunwayProcedureTransitionSelectionChanged
+    );
+
+    connect(
+        newSidRunwayProcedureTransitionButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewSidRunwayProcedureTransition
+    );
+
+    connect(
+        deleteSidRunwayProcedureTransitionButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mSidRunwayProcedureTransitionTable,
+                mSidRunwayProcedureTransitionModel,
+                mSidRunwayProcedureTransitionProxy,
+                mSidRunwayProcedureTransitionEditor,
+                [this](qint32 rawId) {
+                    return mProject.sidRunwayProcedureTransitions().remove(RunwayProcedureTransitionId(rawId));
+                },
+                [this]() { mCurrentSidRunwayProcedureTransitionId = RunwayProcedureTransitionId::invalid(); },
+                [this]() {
+                    auto& table = mProject.sidRunwayProcedureTransitions();
+                    if (!table.order().isEmpty())
+                                table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
+    connect(
+        mSidRunwayProcedureTransitionEditor,
+        &RunwayProcedureTransitionEditorWidget::valueEdited,
+        this,
+        &MainWindow::onSidRunwayProcedureTransitionEdited
+    );
 
     // --- RunwayProcedureTransition STAR ---
-    mStarRunwayProcedureTransitionModel = new GenericTableModel(orderFnFor(&mProject.starRunwayProcedureTransitions()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Runway"), &mProject.starRunwayProcedureTransitions(), &UserRunwayProcedureTransition::runwayIdent),
-        textColumn(QStringLiteral("Ident Procedure"), &mProject.starRunwayProcedureTransitions(), &UserRunwayProcedureTransition::procedureIdent),
-        textColumn(QStringLiteral("Ident séquence"), &mProject.starRunwayProcedureTransitions(), &UserRunwayProcedureTransition::legSequenceIdent),
-    }, this);
+    mStarRunwayProcedureTransitionModel = new GenericTableModel(
+        orderFnFor(&mProject.starRunwayProcedureTransitions()), {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Runway"),
+                &mProject.starRunwayProcedureTransitions(),
+                &UserRunwayProcedureTransition::runwayIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident Procedure"),
+                &mProject.starRunwayProcedureTransitions(),
+                &UserRunwayProcedureTransition::procedureIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident séquence"),
+                &mProject.starRunwayProcedureTransitions(),
+                &UserRunwayProcedureTransition::legSequenceIdent
+            ),
+        },
+        this
+    );
+
     mStarRunwayProcedureTransitionTable = new QTableView(this);
     mStarRunwayProcedureTransitionProxy = new QSortFilterProxyModel(this);
     mStarRunwayProcedureTransitionProxy->setSourceModel(mStarRunwayProcedureTransitionModel);
@@ -794,25 +1194,58 @@ MainWindow::MainWindow(QWidget *parent)
     mStarRunwayProcedureTransitionTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mStarRunwayProcedureTransitionEditor = new RunwayProcedureTransitionEditorWidget(this);
     mStarRunwayProcedureTransitionEditor->setEnabled(false);
+
     auto* newStarRunwayProcedureTransitionButton = new QPushButton(QStringLiteral("Nouvelle RPT STAR"), this);
     auto* deleteStarRunwayProcedureTransitionButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newStarRunwayProcedureTransitionButton, deleteStarRunwayProcedureTransitionButton,
-                                mStarRunwayProcedureTransitionTable, mStarRunwayProcedureTransitionEditor),
-                                QStringLiteral("RunProcTrans STAR"));
-    connect(mStarRunwayProcedureTransitionTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
-            &MainWindow::onStarRunwayProcedureTransitionSelectionChanged);
-    connect(newStarRunwayProcedureTransitionButton, &QPushButton::clicked, this, &MainWindow::onNewStarRunwayProcedureTransition);
-    connect(deleteStarRunwayProcedureTransitionButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mStarRunwayProcedureTransitionTable, mStarRunwayProcedureTransitionModel,
-                         mStarRunwayProcedureTransitionProxy, mStarRunwayProcedureTransitionEditor,
-                         [this](qint32 rawId) { return mProject.starRunwayProcedureTransitions().remove(RunwayProcedureTransitionId(rawId)); },
-                         [this]() { mCurrentStarRunwayProcedureTransitionId = RunwayProcedureTransitionId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.starRunwayProcedureTransitions();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
+
+    tabs->addTab(
+        buildTabLayout(
+            newStarRunwayProcedureTransitionButton,
+            deleteStarRunwayProcedureTransitionButton,
+            mStarRunwayProcedureTransitionTable, mStarRunwayProcedureTransitionEditor
+        ),
+        QStringLiteral("RunProcTrans STAR")
+    );
+
+    connect(
+        mStarRunwayProcedureTransitionTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onStarRunwayProcedureTransitionSelectionChanged
+    );
+
+    connect(
+        newStarRunwayProcedureTransitionButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewStarRunwayProcedureTransition
+    );
+
+    connect(
+        deleteStarRunwayProcedureTransitionButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mStarRunwayProcedureTransitionTable,
+                mStarRunwayProcedureTransitionModel,
+                mStarRunwayProcedureTransitionProxy,
+                mStarRunwayProcedureTransitionEditor,
+                [this](qint32 rawId) {
+                    return mProject.starRunwayProcedureTransitions().remove(RunwayProcedureTransitionId(rawId));
+                },
+                [this]() {
+                    mCurrentStarRunwayProcedureTransitionId = RunwayProcedureTransitionId::invalid();
+                },
+                [this]() {
+                    auto& table = mProject.starRunwayProcedureTransitions();
+                    if (!table.order().isEmpty())
+                            table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
     connect(mStarRunwayProcedureTransitionEditor, &RunwayProcedureTransitionEditorWidget::valueEdited, this,
             &MainWindow::onStarRunwayProcedureTransitionEdited);
 
@@ -823,7 +1256,9 @@ MainWindow::MainWindow(QWidget *parent)
     // qu'un calcul manuel de géométrie (fiable quel que soit l'écran/la
     // configuration multi-moniteurs, barre de menu/dock déjà pris en compte).
     showMaximized();
-}
+
+} // !Constructeur
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Libère l'interface construite par uic.
@@ -831,6 +1266,7 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Affiche la boîte de dialogue « À propos... ».
@@ -848,18 +1284,20 @@ void MainWindow::onAbout()
     about.setTextFormat(Qt::RichText);
 
     // Le corps du texte (Où le gras fonctionnera nativement)
-    about.setInformativeText(QStringLiteral(R"(
-                                                <div style="font-size: 13pt;">
-                                                    <p><b>Version :</b> v0.9b du 31 août 2026</p>
-                                                    <p><b>Finalité :</b> Studio d'édition de données de navigation (SIDs, STARs, Approaches,
-                                                    Runways, Navaids...) à l'usage du Boeing 777 de FlightFactor.</p>
-                                                    <p>Il permet de créer, de modifier et de maintenir à jour un jeu de procédures d'un
-                                                    aéroport fictif, de l'indexer sur le fichier mondial et de l'encoder dans un 'nav1.db'
-                                                    augmenté, lisible par le FF777.</p>
-                                                </div>
-                                               )"
-                                            )
-                             );
+    about.setInformativeText(
+        QStringLiteral(
+            R"(
+                <div style="font-size: 13pt;">
+                    <p><b>Version :</b> v0.9b du 31 août 2026</p>
+                    <p><b>Finalité :</b> Studio d'édition de données de navigation (SIDs, STARs, Approaches,
+                    Runways, Navaids...) à l'usage du Boeing 777 de FlightFactor.</p>
+                    <p>Il permet de créer, de modifier et de maintenir à jour un jeu de procédures d'un
+                    aéroport fictif, de l'indexer sur le fichier mondial et de l'encoder dans un 'nav1.db'
+                    augmenté, lisible par le FF777.</p>
+                </div>
+            )"
+        )
+    );
 
     about.exec();
 
@@ -876,31 +1314,46 @@ void MainWindow::onDocumentation()
     QFile docFile(QStringLiteral(":/Readme.md"));
 
     if (!docFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QMessageBox::warning(this, QStringLiteral("Documentation"),
-                              QStringLiteral("Documents Markdown introuvable."));
+        QMessageBox::warning(
+            this,
+            QStringLiteral("Documentation"),
+            QStringLiteral("Documents Markdown introuvable.")
+        );
         return;
     }
+
     const QString markdown = QString::fromUtf8(docFile.readAll());
 
     auto* textBrowser = new QTextBrowser(this);
+
     textBrowser->setOpenExternalLinks(true);
     textBrowser->setMarkdown(markdown);
 
     QDialog dialog(this);
+
     dialog.setWindowTitle(QStringLiteral("Finalité de l'application — FF777 NavStudio"));
     dialog.resize(720, 560);
+
     auto* layout = new QVBoxLayout(&dialog);
     auto* closeButton = new QPushButton(QStringLiteral("Fermer"));
+
     layout->addWidget(textBrowser);
     layout->addWidget(closeButton, 0, Qt::AlignRight);
+
     connect(closeButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+
     dialog.exec();
 }
 
 // -----------------------------------------------------------------------------------------------------------
 // Assemble la mise en page d'un onglet : boutons + table à gauche,
 // éditeur à droite, séparés par un splitter.
-QWidget* MainWindow::buildTabLayout(QPushButton* newButton, QPushButton* deleteButton, QTableView* table, QWidget* editor)
+QWidget* MainWindow::buildTabLayout(
+            QPushButton* newButton,
+            QPushButton* deleteButton,
+            QTableView* table,
+            QWidget* editor
+            )
 {
     auto* buttonsLayout = new QHBoxLayout;
     buttonsLayout->addWidget(newButton);
@@ -930,9 +1383,12 @@ QWidget* MainWindow::buildTabLayout(QPushButton* newButton, QPushButton* deleteB
 qint32 MainWindow::currentRawId(QTableView* table, GenericTableModel* model, QSortFilterProxyModel* proxy) const
 {
     const QModelIndex proxyIndex = table->currentIndex();
+
     if (!proxyIndex.isValid())
         return -1;
+
     const QModelIndex sourceIndex = proxy->mapToSource(proxyIndex);
+
     return model->idAt(sourceIndex.row());
 }
 
@@ -963,19 +1419,29 @@ void MainWindow::selectSourceRow(QTableView* table, GenericTableModel* model, QS
 // (jamais en dessous — cf. EntityTable::renumberFrom) : la suppression ne
 // fait donc jamais reculer la continuité avec le fichier mondial, elle ne
 // fait que refermer les trous internes laissés par la ligne retirée.
-void MainWindow::deleteCurrentRow(QTableView* table, GenericTableModel* model, QSortFilterProxyModel* proxy, QWidget* editor,
-                                   const std::function<bool(qint32)>& removeFn,
-                                   const std::function<void()>& clearCurrentId,
-                                   const std::function<void()>& compactFn)
+void MainWindow::deleteCurrentRow(
+        QTableView* table,
+        GenericTableModel* model,
+        QSortFilterProxyModel* proxy, QWidget* editor,
+        const std::function<bool(qint32)>& removeFn,
+        const std::function<void()>& clearCurrentId,
+        const std::function<void()>& compactFn
+        )
 {
     const qint32 rawId = currentRawId(table, model, proxy);
+
     if (rawId < 0)
         return;
+
     if (!removeFn(rawId))
         return;
+
     clearCurrentId();
+
     compactFn();
+
     editor->setEnabled(false);
+
     model->reload();
 }
 
@@ -985,67 +1451,109 @@ QString MainWindow::previewFor(EntityKind kind, qint32 rawId, const Regeneration
 {
     for (const ConversionFailure& f : result.conversionFailures) {
         if (f.kind == kind && f.userId == rawId)
-            return QStringLiteral("⚠ ") + f.errors.join(QStringLiteral(" ; "));
+        return QStringLiteral("⚠ ") + f.errors.join(QStringLiteral(" ; "));
     }
+
     switch (kind) {
+
     case EntityKind::Waypoint:
-        if (const Waypoint* w = result.repository.waypoints().find(WaypointId(rawId)))
-            return NavDataWriter::formatWaypointLine(WaypointId(rawId), *w);
+        if (const Waypoint* w =
+            result.repository.waypoints().find(WaypointId(rawId))) {
+                return NavDataWriter::formatWaypointLine(WaypointId(rawId), *w);
+        }
         break;
+
     case EntityKind::Airport:
-        if (const Airport* a = result.repository.airports().find(AirportId(rawId)))
-            return NavDataWriter::formatAirportLine(AirportId(rawId), *a);
+        if (const Airport* a =
+            result.repository.airports().find(AirportId(rawId))) {
+                return NavDataWriter::formatAirportLine(AirportId(rawId), *a);
+        }
         break;
+
     case EntityKind::Runway:
-        if (const Runway* r = result.repository.runways().find(RunwayId(rawId)))
-            return NavDataWriter::formatRunwayLine(RunwayId(rawId), *r);
+        if (const Runway* r =
+            result.repository.runways().find(RunwayId(rawId))) {
+                return NavDataWriter::formatRunwayLine(RunwayId(rawId), *r);
+        }
         break;
+
     case EntityKind::Navaid:
-        if (const Navaid* n = result.repository.navaids().find(NavaidId(rawId)))
-            return NavDataWriter::formatNavaidLine(NavaidId(rawId), *n);
+        if (const Navaid* n =
+            result.repository.navaids().find(NavaidId(rawId))) {
+                return NavDataWriter::formatNavaidLine(NavaidId(rawId), *n);
+        }
         break;
+
     case EntityKind::LegSequence:
-        if (const LegSequence* ls = result.repository.legSequences().find(LegSequenceId(rawId)))
-            return NavDataWriter::formatLegSequenceLine(LegSequenceId(rawId), *ls);
+        if (const LegSequence* ls =
+            result.repository.legSequences().find(LegSequenceId(rawId))) {
+                return NavDataWriter::formatLegSequenceLine(LegSequenceId(rawId), *ls);
+        }
         break;
+
     case EntityKind::Leg:
-        if (const Leg* l = result.repository.legs().find(LegId(rawId)))
-            return NavDataWriter::formatLegLine(LegId(rawId), *l);
+        if (const Leg* l =
+            result.repository.legs().find(LegId(rawId))) {
+                return NavDataWriter::formatLegLine(LegId(rawId), *l);
+        }
         break;
+
     case EntityKind::Approach:
-        if (const Approach* a = result.repository.approaches().find(ApproachId(rawId)))
-            return NavDataWriter::formatApproachLine(ApproachId(rawId), *a);
+        if (const Approach* a =
+            result.repository.approaches().find(ApproachId(rawId))) {
+                return NavDataWriter::formatApproachLine(ApproachId(rawId), *a);
+        }
         break;
+
     case EntityKind::ApproachTransition:
-        if (const ApproachTransition* t = result.repository.approachTransitions().find(ApproachTransitionId(rawId)))
-            return NavDataWriter::formatApproachTransitionLine(ApproachTransitionId(rawId), *t);
+        if (const ApproachTransition* t =
+            result.repository.approachTransitions().find(ApproachTransitionId(rawId))) {
+                return NavDataWriter::formatApproachTransitionLine(ApproachTransitionId(rawId), *t);
+        }
         break;
+
     case EntityKind::SidProcedure:
-        if (const Procedure* p = result.repository.procedures(ProcedureKind::Sid).find(ProcedureId(rawId)))
-            return NavDataWriter::formatProcedureLine(ProcedureId(rawId), *p);
+        if (const Procedure* p =
+            result.repository.procedures(ProcedureKind::Sid).find(ProcedureId(rawId))) {
+                return NavDataWriter::formatProcedureLine(ProcedureId(rawId), *p);
+        }
         break;
+
     case EntityKind::StarProcedure:
-        if (const Procedure* p = result.repository.procedures(ProcedureKind::Star).find(ProcedureId(rawId)))
-            return NavDataWriter::formatProcedureLine(ProcedureId(rawId), *p);
+        if (const Procedure* p =
+            result.repository.procedures(ProcedureKind::Star).find(ProcedureId(rawId))) {
+                return NavDataWriter::formatProcedureLine(ProcedureId(rawId), *p);
+        }
         break;
+
     case EntityKind::SidProcedureTransition:
-        if (const ProcedureTransition* t = result.repository.procedureTransitions(ProcedureKind::Sid).find(ProcedureTransitionId(rawId)))
-            return NavDataWriter::formatProcedureTransitionLine(ProcedureTransitionId(rawId), *t);
+        if (const ProcedureTransition* t =
+            result.repository.procedureTransitions(ProcedureKind::Sid).find(ProcedureTransitionId(rawId))) {
+                return NavDataWriter::formatProcedureTransitionLine(ProcedureTransitionId(rawId), *t);
+        }
         break;
+
     case EntityKind::StarProcedureTransition:
-        if (const ProcedureTransition* t = result.repository.procedureTransitions(ProcedureKind::Star).find(ProcedureTransitionId(rawId)))
-            return NavDataWriter::formatProcedureTransitionLine(ProcedureTransitionId(rawId), *t);
+        if (const ProcedureTransition* t =
+            result.repository.procedureTransitions(ProcedureKind::Star).find(ProcedureTransitionId(rawId))) {
+                return NavDataWriter::formatProcedureTransitionLine(ProcedureTransitionId(rawId), *t);
+        }
         break;
+
     case EntityKind::SidRunwayProcedureTransition:
         if (const RunwayProcedureTransition* t =
-                result.repository.runwayProcedureTransitions(ProcedureKind::Sid).find(RunwayProcedureTransitionId(rawId)))
-            return NavDataWriter::formatRunwayProcedureTransitionLine(RunwayProcedureTransitionId(rawId), *t);
+            result.repository.runwayProcedureTransitions(ProcedureKind::Sid).find(RunwayProcedureTransitionId(rawId))) {
+                return NavDataWriter::formatRunwayProcedureTransitionLine(RunwayProcedureTransitionId(rawId), *t);
+        }
         break;
+
     case EntityKind::StarRunwayProcedureTransition:
         if (const RunwayProcedureTransition* t =
-                result.repository.runwayProcedureTransitions(ProcedureKind::Star).find(RunwayProcedureTransitionId(rawId)))
-            return NavDataWriter::formatRunwayProcedureTransitionLine(RunwayProcedureTransitionId(rawId), *t);
+            result.repository.runwayProcedureTransitions(ProcedureKind::Star).find(RunwayProcedureTransitionId(rawId))) {
+                return NavDataWriter::formatRunwayProcedureTransitionLine(RunwayProcedureTransitionId(rawId), *t);
+        }
         break;
+
     default:
         break;
     }
@@ -1061,12 +1569,15 @@ QString MainWindow::previewFor(EntityKind kind, qint32 rawId, const Regeneration
 void MainWindow::onPointSelectionChanged()
 {
     const qint32 rawId = currentRawId(mPointTable, mPointModel, mPointProxy);
+
     if (rawId < 0) {
         mCurrentPointId = PointId::invalid();
         mPointEditor->setEnabled(false);
         return;
     }
+
     mCurrentPointId = PointId(rawId);
+
     if (const UserPoint* p = mProject.points().find(mCurrentPointId)) {
         mPointEditor->setEnabled(true);
         mPointEditor->setValue(mCurrentPointId, *p);
@@ -1078,8 +1589,16 @@ void MainWindow::onPointSelectionChanged()
 void MainWindow::onNewPoint()
 {
     mProject.points().add(UserPoint{});
+
     mPointModel->reload();
-    selectSourceRow(mPointTable, mPointModel, mPointProxy, mPointModel->rowCount() - 1);
+
+    selectSourceRow(
+        mPointTable,
+        mPointModel,
+        mPointProxy,
+        mPointModel->rowCount() - 1
+    );
+
     mPointEditor->focusIdent();
 }
 
@@ -1089,7 +1608,9 @@ void MainWindow::onPointEdited()
 {
     if (!mCurrentPointId.isValid())
         return;
+
     mProject.points().update(mCurrentPointId, mPointEditor->value());
+
     mPointModel->notifyRowChanged(mCurrentPointId.value());
 }
 
@@ -1103,17 +1624,26 @@ void MainWindow::onPointEdited()
 void MainWindow::onWaypointSelectionChanged()
 {
     const qint32 rawId = currentRawId(mWaypointTable, mWaypointModel, mWaypointProxy);
+
     if (rawId < 0) {
         mCurrentWaypointId = WaypointId::invalid();
         mWaypointEditor->setEnabled(false);
         return;
     }
+
     mCurrentWaypointId = WaypointId(rawId);
+
     if (const UserWaypoint* w = mProject.waypoints().find(mCurrentWaypointId)) {
         mWaypointEditor->setEnabled(true);
         mWaypointEditor->setValue(mCurrentWaypointId, *w);
         const RegenerationResult result = Regenerator().regenerate(mProject);
-        mWaypointEditor->setPreviewLine(previewFor(EntityKind::Waypoint, mCurrentWaypointId.value(), result));
+        mWaypointEditor->setPreviewLine(
+            previewFor(
+                EntityKind::Waypoint,
+                mCurrentWaypointId.value(),
+                result
+            )
+        );
     }
 }
 
@@ -1122,8 +1652,16 @@ void MainWindow::onWaypointSelectionChanged()
 void MainWindow::onNewWaypoint()
 {
     mProject.waypoints().add(UserWaypoint{});
+
     mWaypointModel->reload();
-    selectSourceRow(mWaypointTable, mWaypointModel, mWaypointProxy, mWaypointModel->rowCount() - 1);
+
+    selectSourceRow(
+        mWaypointTable,
+        mWaypointModel,
+        mWaypointProxy,
+        mWaypointModel->rowCount() - 1
+    );
+
     mWaypointEditor->focusFirstField();
 }
 
@@ -1133,10 +1671,20 @@ void MainWindow::onWaypointEdited()
 {
     if (!mCurrentWaypointId.isValid())
         return;
+
     mProject.waypoints().update(mCurrentWaypointId, mWaypointEditor->value());
+
     mWaypointModel->notifyRowChanged(mCurrentWaypointId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
-    mWaypointEditor->setPreviewLine(previewFor(EntityKind::Waypoint, mCurrentWaypointId.value(), result));
+
+    mWaypointEditor->setPreviewLine(
+        previewFor(
+            EntityKind::Waypoint,
+            mCurrentWaypointId.value(),
+            result
+        )
+    );
 }
 
 // -----------------------------------------------------------------------------------------------------------
@@ -1144,29 +1692,52 @@ void MainWindow::onWaypointEdited()
 void MainWindow::onAirportSelectionChanged()
 {
     const qint32 rawId = currentRawId(mAirportTable, mAirportModel, mAirportProxy);
+
     if (rawId < 0) {
         mCurrentAirportId = AirportId::invalid();
         mAirportEditor->setEnabled(false);
         return;
     }
+
     mCurrentAirportId = AirportId(rawId);
+
     if (const UserAirport* a = mProject.airports().find(mCurrentAirportId)) {
+
         mAirportEditor->setEnabled(true);
+
         mAirportEditor->setValue(mCurrentAirportId, *a);
+
         const RegenerationResult result = Regenerator().regenerate(mProject);
-        mAirportEditor->setPreviewLine(previewFor(EntityKind::Airport, mCurrentAirportId.value(), result));
+
+        mAirportEditor->setPreviewLine(
+            previewFor(
+                EntityKind::Airport,
+                mCurrentAirportId.value(),
+                result
+            )
+        );
     }
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Ajoute un nouvel aéroport et le sélectionne pour édition immédiate.
 void MainWindow::onNewAirport()
 {
     mProject.airports().add(UserAirport{});
+
     mAirportModel->reload();
-    selectSourceRow(mAirportTable, mAirportModel, mAirportProxy, mAirportModel->rowCount() - 1);
+
+    selectSourceRow(
+        mAirportTable,
+        mAirportModel,
+        mAirportProxy,
+        mAirportModel->rowCount() - 1
+    );
+
     mAirportEditor->focusFirstField();
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Met à jour l'aéroport courant et régénère l'aperçu résolu.
@@ -1174,28 +1745,48 @@ void MainWindow::onAirportEdited()
 {
     if (!mCurrentAirportId.isValid())
         return;
+
     mProject.airports().update(mCurrentAirportId, mAirportEditor->value());
+
     mAirportModel->notifyRowChanged(mCurrentAirportId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
-    mAirportEditor->setPreviewLine(previewFor(EntityKind::Airport, mCurrentAirportId.value(), result));
+
+    mAirportEditor->setPreviewLine(
+        previewFor(
+            EntityKind::Airport,
+            mCurrentAirportId.value(),
+            result
+        )
+    );
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Met à jour l'éditeur de piste à la sélection, avec aperçu régénéré.
 void MainWindow::onRunwaySelectionChanged()
 {
     const qint32 rawId = currentRawId(mRunwayTable, mRunwayModel, mRunwayProxy);
+
     if (rawId < 0) {
         mCurrentRunwayId = RunwayId::invalid();
         mRunwayEditor->setEnabled(false);
         return;
     }
+
     mCurrentRunwayId = RunwayId(rawId);
+
     if (const UserRunway* r = mProject.runways().find(mCurrentRunwayId)) {
         mRunwayEditor->setEnabled(true);
         mRunwayEditor->setValue(mCurrentRunwayId, *r);
         const RegenerationResult result = Regenerator().regenerate(mProject);
-        mRunwayEditor->setPreviewLine(previewFor(EntityKind::Runway, mCurrentRunwayId.value(), result));
+        mRunwayEditor->setPreviewLine(
+            previewFor(
+                EntityKind::Runway,
+                mCurrentRunwayId.value(),
+                result
+            )
+        );
     }
 }
 
@@ -1204,8 +1795,16 @@ void MainWindow::onRunwaySelectionChanged()
 void MainWindow::onNewRunway()
 {
     mProject.runways().add(UserRunway{});
+
     mRunwayModel->reload();
-    selectSourceRow(mRunwayTable, mRunwayModel, mRunwayProxy, mRunwayModel->rowCount() - 1);
+
+    selectSourceRow(
+        mRunwayTable,
+        mRunwayModel,
+        mRunwayProxy,
+        mRunwayModel->rowCount() - 1
+    );
+
     mRunwayEditor->focusFirstField();
 }
 
@@ -1215,10 +1814,20 @@ void MainWindow::onRunwayEdited()
 {
     if (!mCurrentRunwayId.isValid())
         return;
+
     mProject.runways().update(mCurrentRunwayId, mRunwayEditor->value());
+
     mRunwayModel->notifyRowChanged(mCurrentRunwayId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
-    mRunwayEditor->setPreviewLine(previewFor(EntityKind::Runway, mCurrentRunwayId.value(), result));
+
+    mRunwayEditor->setPreviewLine(
+        previewFor(
+            EntityKind::Runway,
+            mCurrentRunwayId.value(),
+            result
+        )
+    );
 }
 
 // -----------------------------------------------------------------------------------------------------------
@@ -1226,29 +1835,52 @@ void MainWindow::onRunwayEdited()
 void MainWindow::onNavaidSelectionChanged()
 {
     const qint32 rawId = currentRawId(mNavaidTable, mNavaidModel, mNavaidProxy);
+
     if (rawId < 0) {
         mCurrentNavaidId = NavaidId::invalid();
         mNavaidEditor->setEnabled(false);
         return;
     }
+
     mCurrentNavaidId = NavaidId(rawId);
+
     if (const UserNavaid* n = mProject.navaids().find(mCurrentNavaidId)) {
+
         mNavaidEditor->setEnabled(true);
+
         mNavaidEditor->setValue(mCurrentNavaidId, *n);
+
         const RegenerationResult result = Regenerator().regenerate(mProject);
-        mNavaidEditor->setPreviewLine(previewFor(EntityKind::Navaid, mCurrentNavaidId.value(), result));
+
+        mNavaidEditor->setPreviewLine(
+            previewFor(
+                EntityKind::Navaid,
+                mCurrentNavaidId.value(),
+                result
+            )
+        );
     }
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Ajoute un nouveau navaid et le sélectionne pour édition immédiate.
 void MainWindow::onNewNavaid()
 {
     mProject.navaids().add(UserNavaid{});
+
     mNavaidModel->reload();
-    selectSourceRow(mNavaidTable, mNavaidModel, mNavaidProxy, mNavaidModel->rowCount() - 1);
+
+    selectSourceRow(
+        mNavaidTable,
+        mNavaidModel,
+        mNavaidProxy,
+        mNavaidModel->rowCount() - 1
+    );
+
     mNavaidEditor->focusFirstField();
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Met à jour le navaid courant et régénère l'aperçu résolu.
@@ -1256,38 +1888,71 @@ void MainWindow::onNavaidEdited()
 {
     if (!mCurrentNavaidId.isValid())
         return;
+
     mProject.navaids().update(mCurrentNavaidId, mNavaidEditor->value());
+
     mNavaidModel->notifyRowChanged(mCurrentNavaidId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
-    mNavaidEditor->setPreviewLine(previewFor(EntityKind::Navaid, mCurrentNavaidId.value(), result));
+
+    mNavaidEditor->setPreviewLine(
+        previewFor(
+            EntityKind::Navaid,
+            mCurrentNavaidId.value(),
+            result
+        )
+    );
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Met à jour l'éditeur de séquence de legs à la sélection, avec aperçu régénéré.
 void MainWindow::onLegSequenceSelectionChanged()
 {
     const qint32 rawId = currentRawId(mLegSequenceTable, mLegSequenceModel, mLegSequenceProxy);
+
     if (rawId < 0) {
         mCurrentLegSequenceId = LegSequenceId::invalid();
         mLegSequenceEditor->setEnabled(false);
         return;
     }
+
     mCurrentLegSequenceId = LegSequenceId(rawId);
+
     if (const UserLegSequence* ls = mProject.legSequences().find(mCurrentLegSequenceId)) {
+
         mLegSequenceEditor->setEnabled(true);
+
         mLegSequenceEditor->setValue(mCurrentLegSequenceId, *ls);
+
         const RegenerationResult result = Regenerator().regenerate(mProject);
-        mLegSequenceEditor->setPreviewLine(previewFor(EntityKind::LegSequence, mCurrentLegSequenceId.value(), result));
+
+        mLegSequenceEditor->setPreviewLine(
+            previewFor(
+                EntityKind::LegSequence,
+                mCurrentLegSequenceId.value(),
+                result
+            )
+        );
     }
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Ajoute une nouvelle séquence de legs et la sélectionne pour édition immédiate.
 void MainWindow::onNewLegSequence()
 {
     mProject.legSequences().add(UserLegSequence{});
+
     mLegSequenceModel->reload();
-    selectSourceRow(mLegSequenceTable, mLegSequenceModel, mLegSequenceProxy, mLegSequenceModel->rowCount() - 1);
+
+    selectSourceRow(
+        mLegSequenceTable,
+        mLegSequenceModel,
+        mLegSequenceProxy,
+        mLegSequenceModel->rowCount() - 1
+    );
+
     mLegSequenceEditor->focusFirstField();
 }
 
@@ -1297,10 +1962,20 @@ void MainWindow::onLegSequenceEdited()
 {
     if (!mCurrentLegSequenceId.isValid())
         return;
+
     mProject.legSequences().update(mCurrentLegSequenceId, mLegSequenceEditor->value());
+
     mLegSequenceModel->notifyRowChanged(mCurrentLegSequenceId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
-    mLegSequenceEditor->setPreviewLine(previewFor(EntityKind::LegSequence, mCurrentLegSequenceId.value(), result));
+
+    mLegSequenceEditor->setPreviewLine(
+        previewFor(
+            EntityKind::LegSequence,
+            mCurrentLegSequenceId.value(),
+            result
+        )
+    );
 }
 
 // -----------------------------------------------------------------------------------------------------------
@@ -1308,19 +1983,32 @@ void MainWindow::onLegSequenceEdited()
 void MainWindow::onLegSelectionChanged()
 {
     const qint32 rawId = currentRawId(mLegTable, mLegModel, mLegProxy);
+
     if (rawId < 0) {
         mCurrentLegId = LegId::invalid();
         mLegEditor->setEnabled(false);
         return;
     }
     mCurrentLegId = LegId(rawId);
+
     if (const UserLeg* l = mProject.legs().find(mCurrentLegId)) {
+
         mLegEditor->setEnabled(true);
+
         mLegEditor->setValue(mCurrentLegId, *l);
+
         const RegenerationResult result = Regenerator().regenerate(mProject);
-        mLegEditor->setPreviewLine(previewFor(EntityKind::Leg, mCurrentLegId.value(), result));
+
+        mLegEditor->setPreviewLine(
+            previewFor(
+                EntityKind::Leg,
+                mCurrentLegId.value(),
+                result
+            )
+        );
     }
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Ajoute un nouveau leg et le sélectionne pour édition immédiate.
@@ -1332,16 +2020,27 @@ void MainWindow::onNewLeg()
     mLegEditor->focusFirstField();
 }
 
+
 // -----------------------------------------------------------------------------------------------------------
 // Met à jour le leg courant et régénère l'aperçu résolu.
 void MainWindow::onLegEdited()
 {
     if (!mCurrentLegId.isValid())
         return;
+
     mProject.legs().update(mCurrentLegId, mLegEditor->value());
+
     mLegModel->notifyRowChanged(mCurrentLegId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
-    mLegEditor->setPreviewLine(previewFor(EntityKind::Leg, mCurrentLegId.value(), result));
+
+    mLegEditor->setPreviewLine(
+        previewFor(
+            EntityKind::Leg,
+            mCurrentLegId.value(),
+            result
+        )
+    );
 }
 
 
@@ -1352,29 +2051,52 @@ void MainWindow::onLegEdited()
 void MainWindow::onApproachSelectionChanged()
 {
     const qint32 rawId = currentRawId(mApproachTable, mApproachModel, mApproachProxy);
+
     if (rawId < 0) {
         mCurrentApproachId = ApproachId::invalid();
         mApproachEditor->setEnabled(false);
         return;
     }
+
     mCurrentApproachId = ApproachId(rawId);
+
     if (const UserApproach* a = mProject.approaches().find(mCurrentApproachId)) {
+
         mApproachEditor->setEnabled(true);
+
         mApproachEditor->setValue(mCurrentApproachId, *a);
+
         const RegenerationResult result = Regenerator().regenerate(mProject);
-        mApproachEditor->setPreviewLine(previewFor(EntityKind::Approach, mCurrentApproachId.value(), result));
+
+        mApproachEditor->setPreviewLine(
+            previewFor(
+                EntityKind::Approach,
+                mCurrentApproachId.value(),
+                result
+            )
+        );
     }
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Ajoute une nouvelle approche et la sélectionne pour édition immédiate.
 void MainWindow::onNewApproach()
 {
     mProject.approaches().add(UserApproach{});
+
     mApproachModel->reload();
-    selectSourceRow(mApproachTable, mApproachModel, mApproachProxy, mApproachModel->rowCount() - 1);
+
+    selectSourceRow(
+        mApproachTable,
+        mApproachModel,
+        mApproachProxy,
+        mApproachModel->rowCount() - 1
+    );
+
     mApproachEditor->focusFirstField();
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Met à jour l'approche courante et régénère l'aperçu résolu.
@@ -1382,10 +2104,20 @@ void MainWindow::onApproachEdited()
 {
     if (!mCurrentApproachId.isValid())
         return;
+
     mProject.approaches().update(mCurrentApproachId, mApproachEditor->value());
+
     mApproachModel->notifyRowChanged(mCurrentApproachId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
-    mApproachEditor->setPreviewLine(previewFor(EntityKind::Approach, mCurrentApproachId.value(), result));
+
+    mApproachEditor->setPreviewLine(
+        previewFor(
+            EntityKind::Approach,
+            mCurrentApproachId.value(),
+            result
+        )
+    );
 }
 
 
@@ -1396,18 +2128,30 @@ void MainWindow::onApproachEdited()
 void MainWindow::onApproachTransitionSelectionChanged()
 {
     const qint32 rawId = currentRawId(mApproachTransitionTable, mApproachTransitionModel, mApproachTransitionProxy);
+
     if (rawId < 0) {
         mCurrentApproachTransitionId = ApproachTransitionId::invalid();
         mApproachTransitionEditor->setEnabled(false);
         return;
     }
+
     mCurrentApproachTransitionId = ApproachTransitionId(rawId);
+
     if (const UserApproachTransition* t = mProject.approachTransitions().find(mCurrentApproachTransitionId)) {
+
         mApproachTransitionEditor->setEnabled(true);
+
         mApproachTransitionEditor->setValue(mCurrentApproachTransitionId, *t);
+
         const RegenerationResult result = Regenerator().regenerate(mProject);
+
         mApproachTransitionEditor->setPreviewLine(
-            previewFor(EntityKind::ApproachTransition, mCurrentApproachTransitionId.value(), result));
+            previewFor(
+                EntityKind::ApproachTransition,
+                mCurrentApproachTransitionId.value(),
+                result
+            )
+        );
     }
 }
 
@@ -1416,8 +2160,16 @@ void MainWindow::onApproachTransitionSelectionChanged()
 void MainWindow::onNewApproachTransition()
 {
     mProject.approachTransitions().add(UserApproachTransition{});
+
     mApproachTransitionModel->reload();
-    selectSourceRow(mApproachTransitionTable, mApproachTransitionModel, mApproachTransitionProxy, mApproachTransitionModel->rowCount() - 1);
+
+    selectSourceRow(
+        mApproachTransitionTable,
+        mApproachTransitionModel,
+        mApproachTransitionProxy,
+        mApproachTransitionModel->rowCount() - 1
+    );
+
     mApproachTransitionEditor->focusFirstField();
 }
 
@@ -1427,11 +2179,20 @@ void MainWindow::onApproachTransitionEdited()
 {
     if (!mCurrentApproachTransitionId.isValid())
         return;
+
     mProject.approachTransitions().update(mCurrentApproachTransitionId, mApproachTransitionEditor->value());
+
     mApproachTransitionModel->notifyRowChanged(mCurrentApproachTransitionId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
+
     mApproachTransitionEditor->setPreviewLine(
-        previewFor(EntityKind::ApproachTransition, mCurrentApproachTransitionId.value(), result));
+        previewFor(
+            EntityKind::ApproachTransition,
+            mCurrentApproachTransitionId.value(),
+            result
+        )
+    );
 }
 
 
@@ -1442,17 +2203,30 @@ void MainWindow::onApproachTransitionEdited()
 void MainWindow::onSidProcedureSelectionChanged()
 {
     const qint32 rawId = currentRawId(mSidProcedureTable, mSidProcedureModel, mSidProcedureProxy);
+
     if (rawId < 0) {
         mCurrentSidProcedureId = ProcedureId::invalid();
         mSidProcedureEditor->setEnabled(false);
         return;
     }
+
     mCurrentSidProcedureId = ProcedureId(rawId);
+
     if (const UserProcedure* p = mProject.sidProcedures().find(mCurrentSidProcedureId)) {
+
         mSidProcedureEditor->setEnabled(true);
+
         mSidProcedureEditor->setValue(mCurrentSidProcedureId, *p);
+
         const RegenerationResult result = Regenerator().regenerate(mProject);
-        mSidProcedureEditor->setPreviewLine(previewFor(EntityKind::SidProcedure, mCurrentSidProcedureId.value(), result));
+
+        mSidProcedureEditor->setPreviewLine(
+            previewFor(
+                EntityKind::SidProcedure,
+                mCurrentSidProcedureId.value(),
+                result
+            )
+        );
     }
 }
 
@@ -1461,8 +2235,16 @@ void MainWindow::onSidProcedureSelectionChanged()
 void MainWindow::onNewSidProcedure()
 {
     mProject.sidProcedures().add(UserProcedure{});
+
     mSidProcedureModel->reload();
-    selectSourceRow(mSidProcedureTable, mSidProcedureModel, mSidProcedureProxy, mSidProcedureModel->rowCount() - 1);
+
+    selectSourceRow(
+        mSidProcedureTable,
+        mSidProcedureModel,
+        mSidProcedureProxy,
+        mSidProcedureModel->rowCount() - 1
+    );
+
     mSidProcedureEditor->focusFirstField();
 }
 
@@ -1472,10 +2254,20 @@ void MainWindow::onSidProcedureEdited()
 {
     if (!mCurrentSidProcedureId.isValid())
         return;
+
     mProject.sidProcedures().update(mCurrentSidProcedureId, mSidProcedureEditor->value());
+
     mSidProcedureModel->notifyRowChanged(mCurrentSidProcedureId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
-    mSidProcedureEditor->setPreviewLine(previewFor(EntityKind::SidProcedure, mCurrentSidProcedureId.value(), result));
+
+    mSidProcedureEditor->setPreviewLine(
+        previewFor(
+            EntityKind::SidProcedure,
+            mCurrentSidProcedureId.value(),
+            result
+        )
+    );
 }
 
 
@@ -1486,29 +2278,51 @@ void MainWindow::onSidProcedureEdited()
 void MainWindow::onStarProcedureSelectionChanged()
 {
     const qint32 rawId = currentRawId(mStarProcedureTable, mStarProcedureModel, mStarProcedureProxy);
+
     if (rawId < 0) {
-        mCurrentStarProcedureId = ProcedureId::invalid();
-        mStarProcedureEditor->setEnabled(false);
-        return;
+            mCurrentStarProcedureId = ProcedureId::invalid();
+            mStarProcedureEditor->setEnabled(false);
+            return;
     }
+
     mCurrentStarProcedureId = ProcedureId(rawId);
+
     if (const UserProcedure* p = mProject.starProcedures().find(mCurrentStarProcedureId)) {
-        mStarProcedureEditor->setEnabled(true);
-        mStarProcedureEditor->setValue(mCurrentStarProcedureId, *p);
-        const RegenerationResult result = Regenerator().regenerate(mProject);
-        mStarProcedureEditor->setPreviewLine(previewFor(EntityKind::StarProcedure, mCurrentStarProcedureId.value(), result));
+
+            mStarProcedureEditor->setEnabled(true);
+
+            mStarProcedureEditor->setValue(mCurrentStarProcedureId, *p);
+
+            const RegenerationResult result = Regenerator().regenerate(mProject);
+
+            mStarProcedureEditor->setPreviewLine(
+                previewFor(EntityKind::StarProcedure,
+                           mCurrentStarProcedureId.value(),
+                           result
+                )
+            );
     }
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Ajoute une nouvelle procédure STAR et la sélectionne pour édition immédiate.
 void MainWindow::onNewStarProcedure()
 {
     mProject.starProcedures().add(UserProcedure{});
+
     mStarProcedureModel->reload();
-    selectSourceRow(mStarProcedureTable, mStarProcedureModel, mStarProcedureProxy, mStarProcedureModel->rowCount() - 1);
+
+    selectSourceRow(
+        mStarProcedureTable,
+        mStarProcedureModel,
+        mStarProcedureProxy,
+        mStarProcedureModel->rowCount() - 1
+    );
+
     mStarProcedureEditor->focusFirstField();
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Met à jour la procédure STAR courante et régénère l'aperçu résolu.
@@ -1516,10 +2330,20 @@ void MainWindow::onStarProcedureEdited()
 {
     if (!mCurrentStarProcedureId.isValid())
         return;
+
     mProject.starProcedures().update(mCurrentStarProcedureId, mStarProcedureEditor->value());
+
     mStarProcedureModel->notifyRowChanged(mCurrentStarProcedureId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
-    mStarProcedureEditor->setPreviewLine(previewFor(EntityKind::StarProcedure, mCurrentStarProcedureId.value(), result));
+
+    mStarProcedureEditor->setPreviewLine(
+        previewFor(
+            EntityKind::StarProcedure,
+            mCurrentStarProcedureId.value(),
+            result
+        )
+    );
 }
 
 
@@ -1536,12 +2360,22 @@ void MainWindow::onSidProcedureTransitionSelectionChanged()
         return;
     }
     mCurrentSidProcedureTransitionId = ProcedureTransitionId(rawId);
-    if (const UserProcedureTransition* t = mProject.sidProcedureTransitions().find(mCurrentSidProcedureTransitionId)) {
+    if (const UserProcedureTransition* t =
+            mProject.sidProcedureTransitions().find(mCurrentSidProcedureTransitionId)) {
+
         mSidProcedureTransitionEditor->setEnabled(true);
+
         mSidProcedureTransitionEditor->setValue(mCurrentSidProcedureTransitionId, *t);
+
         const RegenerationResult result = Regenerator().regenerate(mProject);
+
         mSidProcedureTransitionEditor->setPreviewLine(
-            previewFor(EntityKind::SidProcedureTransition, mCurrentSidProcedureTransitionId.value(), result));
+            previewFor(
+                EntityKind::SidProcedureTransition,
+                mCurrentSidProcedureTransitionId.value(),
+                result
+            )
+        );
     }
 }
 
@@ -1550,11 +2384,19 @@ void MainWindow::onSidProcedureTransitionSelectionChanged()
 void MainWindow::onNewSidProcedureTransition()
 {
     mProject.sidProcedureTransitions().add(UserProcedureTransition{});
+
     mSidProcedureTransitionModel->reload();
-    selectSourceRow(mSidProcedureTransitionTable, mSidProcedureTransitionModel, mSidProcedureTransitionProxy,
-                    mSidProcedureTransitionModel->rowCount() - 1);
+
+    selectSourceRow(
+        mSidProcedureTransitionTable,
+        mSidProcedureTransitionModel,
+        mSidProcedureTransitionProxy,
+        mSidProcedureTransitionModel->rowCount() - 1
+    );
+
     mSidProcedureTransitionEditor->focusFirstField();
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Met à jour la transition SID courante et régénère l'aperçu résolu.
@@ -1562,11 +2404,21 @@ void MainWindow::onSidProcedureTransitionEdited()
 {
     if (!mCurrentSidProcedureTransitionId.isValid())
         return;
-    mProject.sidProcedureTransitions().update(mCurrentSidProcedureTransitionId, mSidProcedureTransitionEditor->value());
+
+    mProject.sidProcedureTransitions().update(
+        mCurrentSidProcedureTransitionId,
+        mSidProcedureTransitionEditor->value()
+    );
+
     mSidProcedureTransitionModel->notifyRowChanged(mCurrentSidProcedureTransitionId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
+
     mSidProcedureTransitionEditor->setPreviewLine(
-        previewFor(EntityKind::SidProcedureTransition, mCurrentSidProcedureTransitionId.value(), result));
+        previewFor(EntityKind::SidProcedureTransition,
+        mCurrentSidProcedureTransitionId.value(),
+        result)
+    );
 }
 
 
@@ -1577,18 +2429,29 @@ void MainWindow::onSidProcedureTransitionEdited()
 void MainWindow::onStarProcedureTransitionSelectionChanged()
 {
     const qint32 rawId = currentRawId(mStarProcedureTransitionTable, mStarProcedureTransitionModel, mStarProcedureTransitionProxy);
+
     if (rawId < 0) {
         mCurrentStarProcedureTransitionId = ProcedureTransitionId::invalid();
         mStarProcedureTransitionEditor->setEnabled(false);
         return;
     }
+
     mCurrentStarProcedureTransitionId = ProcedureTransitionId(rawId);
-    if (const UserProcedureTransition* t = mProject.starProcedureTransitions().find(mCurrentStarProcedureTransitionId)) {
+
+    if (const UserProcedureTransition* t =
+            mProject.starProcedureTransitions().find(mCurrentStarProcedureTransitionId)) {
+
         mStarProcedureTransitionEditor->setEnabled(true);
+
         mStarProcedureTransitionEditor->setValue(mCurrentStarProcedureTransitionId, *t);
+
         const RegenerationResult result = Regenerator().regenerate(mProject);
+
         mStarProcedureTransitionEditor->setPreviewLine(
-            previewFor(EntityKind::StarProcedureTransition, mCurrentStarProcedureTransitionId.value(), result));
+                previewFor(EntityKind::StarProcedureTransition,
+                mCurrentStarProcedureTransitionId.value(),
+                result)
+        );
     }
 }
 
@@ -1597,11 +2460,19 @@ void MainWindow::onStarProcedureTransitionSelectionChanged()
 void MainWindow::onNewStarProcedureTransition()
 {
     mProject.starProcedureTransitions().add(UserProcedureTransition{});
+
     mStarProcedureTransitionModel->reload();
-    selectSourceRow(mStarProcedureTransitionTable, mStarProcedureTransitionModel, mStarProcedureTransitionProxy,
-                    mStarProcedureTransitionModel->rowCount() - 1);
+
+    selectSourceRow(
+        mStarProcedureTransitionTable,
+        mStarProcedureTransitionModel,
+        mStarProcedureTransitionProxy,
+        mStarProcedureTransitionModel->rowCount() - 1
+    );
+
     mStarProcedureTransitionEditor->focusFirstField();
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Met à jour la transition STAR courante et régénère l'aperçu résolu.
@@ -1609,12 +2480,22 @@ void MainWindow::onStarProcedureTransitionEdited()
 {
     if (!mCurrentStarProcedureTransitionId.isValid())
         return;
-    mProject.starProcedureTransitions().update(mCurrentStarProcedureTransitionId, mStarProcedureTransitionEditor->value());
+
+    mProject.starProcedureTransitions().update(
+        mCurrentStarProcedureTransitionId,
+        mStarProcedureTransitionEditor->value()
+    );
+
     mStarProcedureTransitionModel->notifyRowChanged(mCurrentStarProcedureTransitionId.value());
+
     const RegenerationResult result = Regenerator().regenerate(mProject);
+
     mStarProcedureTransitionEditor->setPreviewLine(
-        previewFor(EntityKind::StarProcedureTransition, mCurrentStarProcedureTransitionId.value(), result));
+        previewFor(EntityKind::StarProcedureTransition,
+        mCurrentStarProcedureTransitionId.value(), result)
+    );
 }
+
 
 // ===========================================================================================================
 // RUNWAYPROCEDURETRANSITION SID
@@ -1632,11 +2513,17 @@ void MainWindow::onSidRunwayProcedureTransitionSelectionChanged()
     mCurrentSidRunwayProcedureTransitionId = RunwayProcedureTransitionId(rawId);
     if (const UserRunwayProcedureTransition* t =
             mProject.sidRunwayProcedureTransitions().find(mCurrentSidRunwayProcedureTransitionId)) {
-        mSidRunwayProcedureTransitionEditor->setEnabled(true);
-        mSidRunwayProcedureTransitionEditor->setValue(mCurrentSidRunwayProcedureTransitionId, *t);
-        const RegenerationResult result = Regenerator().regenerate(mProject);
-        mSidRunwayProcedureTransitionEditor->setPreviewLine(
-            previewFor(EntityKind::SidRunwayProcedureTransition, mCurrentSidRunwayProcedureTransitionId.value(), result));
+
+                mSidRunwayProcedureTransitionEditor->setEnabled(true);
+                mSidRunwayProcedureTransitionEditor->setValue(mCurrentSidRunwayProcedureTransitionId, *t);
+                const RegenerationResult result = Regenerator().regenerate(mProject);
+                mSidRunwayProcedureTransitionEditor->setPreviewLine(
+                    previewFor(
+                        EntityKind::SidRunwayProcedureTransition,
+                        mCurrentSidRunwayProcedureTransitionId.value(),
+                        result
+                    )
+                );
     }
 }
 
@@ -1646,8 +2533,14 @@ void MainWindow::onNewSidRunwayProcedureTransition()
 {
     mProject.sidRunwayProcedureTransitions().add(UserRunwayProcedureTransition{});
     mSidRunwayProcedureTransitionModel->reload();
-    selectSourceRow(mSidRunwayProcedureTransitionTable, mSidRunwayProcedureTransitionModel, mSidRunwayProcedureTransitionProxy,
-                    mSidRunwayProcedureTransitionModel->rowCount() - 1);
+
+    selectSourceRow(
+        mSidRunwayProcedureTransitionTable,
+        mSidRunwayProcedureTransitionModel,
+        mSidRunwayProcedureTransitionProxy,
+        mSidRunwayProcedureTransitionModel->rowCount() - 1
+    );
+
     mSidRunwayProcedureTransitionEditor->focusFirstField();
 }
 
@@ -1657,12 +2550,19 @@ void MainWindow::onSidRunwayProcedureTransitionEdited()
 {
     if (!mCurrentSidRunwayProcedureTransitionId.isValid())
         return;
-    mProject.sidRunwayProcedureTransitions().update(mCurrentSidRunwayProcedureTransitionId,
-                                                      mSidRunwayProcedureTransitionEditor->value());
+    mProject.sidRunwayProcedureTransitions().update(
+        mCurrentSidRunwayProcedureTransitionId,
+        mSidRunwayProcedureTransitionEditor->value()
+    );
     mSidRunwayProcedureTransitionModel->notifyRowChanged(mCurrentSidRunwayProcedureTransitionId.value());
     const RegenerationResult result = Regenerator().regenerate(mProject);
     mSidRunwayProcedureTransitionEditor->setPreviewLine(
-        previewFor(EntityKind::SidRunwayProcedureTransition, mCurrentSidRunwayProcedureTransitionId.value(), result));
+        previewFor(
+            EntityKind::SidRunwayProcedureTransition,
+            mCurrentSidRunwayProcedureTransitionId.value(),
+            result
+        )
+    );
 }
 
 
@@ -1672,8 +2572,11 @@ void MainWindow::onSidRunwayProcedureTransitionEdited()
 // Met à jour l'éditeur de transition de piste STAR à la sélection, avec aperçu.
 void MainWindow::onStarRunwayProcedureTransitionSelectionChanged()
 {
-    const qint32 rawId = currentRawId(mStarRunwayProcedureTransitionTable, mStarRunwayProcedureTransitionModel,
-                                      mStarRunwayProcedureTransitionProxy);
+    const qint32 rawId = currentRawId(
+        mStarRunwayProcedureTransitionTable,
+        mStarRunwayProcedureTransitionModel,
+        mStarRunwayProcedureTransitionProxy
+    );
     if (rawId < 0) {
         mCurrentStarRunwayProcedureTransitionId = RunwayProcedureTransitionId::invalid();
         mStarRunwayProcedureTransitionEditor->setEnabled(false);
@@ -1682,13 +2585,21 @@ void MainWindow::onStarRunwayProcedureTransitionSelectionChanged()
     mCurrentStarRunwayProcedureTransitionId = RunwayProcedureTransitionId(rawId);
     if (const UserRunwayProcedureTransition* t =
             mProject.starRunwayProcedureTransitions().find(mCurrentStarRunwayProcedureTransitionId)) {
+
         mStarRunwayProcedureTransitionEditor->setEnabled(true);
         mStarRunwayProcedureTransitionEditor->setValue(mCurrentStarRunwayProcedureTransitionId, *t);
         const RegenerationResult result = Regenerator().regenerate(mProject);
+
         mStarRunwayProcedureTransitionEditor->setPreviewLine(
-            previewFor(EntityKind::StarRunwayProcedureTransition, mCurrentStarRunwayProcedureTransitionId.value(), result));
+            previewFor(
+                EntityKind::StarRunwayProcedureTransition,
+                mCurrentStarRunwayProcedureTransitionId.value(),
+                result
+            )
+        );
     }
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 // Ajoute une nouvelle transition de piste STAR et la sélectionne pour édition.
@@ -1696,8 +2607,14 @@ void MainWindow::onNewStarRunwayProcedureTransition()
 {
     mProject.starRunwayProcedureTransitions().add(UserRunwayProcedureTransition{});
     mStarRunwayProcedureTransitionModel->reload();
-    selectSourceRow(mStarRunwayProcedureTransitionTable, mStarRunwayProcedureTransitionModel, mStarRunwayProcedureTransitionProxy,
-                    mStarRunwayProcedureTransitionModel->rowCount() - 1);
+
+    selectSourceRow(
+        mStarRunwayProcedureTransitionTable,
+        mStarRunwayProcedureTransitionModel,
+        mStarRunwayProcedureTransitionProxy,
+        mStarRunwayProcedureTransitionModel->rowCount() - 1
+    );
+
     mStarRunwayProcedureTransitionEditor->focusFirstField();
 }
 
@@ -1707,12 +2624,20 @@ void MainWindow::onStarRunwayProcedureTransitionEdited()
 {
     if (!mCurrentStarRunwayProcedureTransitionId.isValid())
         return;
-    mProject.starRunwayProcedureTransitions().update(mCurrentStarRunwayProcedureTransitionId,
-                                                       mStarRunwayProcedureTransitionEditor->value());
+
+    mProject.starRunwayProcedureTransitions().update(
+                    mCurrentStarRunwayProcedureTransitionId,
+                    mStarRunwayProcedureTransitionEditor->value()
+    );
+
     mStarRunwayProcedureTransitionModel->notifyRowChanged(mCurrentStarRunwayProcedureTransitionId.value());
     const RegenerationResult result = Regenerator().regenerate(mProject);
+
     mStarRunwayProcedureTransitionEditor->setPreviewLine(
-        previewFor(EntityKind::StarRunwayProcedureTransition, mCurrentStarRunwayProcedureTransitionId.value(), result));
+                previewFor(EntityKind::StarRunwayProcedureTransition,
+                mCurrentStarRunwayProcedureTransitionId.value(),
+                result)
+    );
 }
 
 
@@ -1726,8 +2651,11 @@ void MainWindow::loadProjectIntoUi(qint64 id, const QString& name)
     QString err;
     const std::optional<UserProject> loaded = mStore.loadProject(id, &err);
     if (!loaded) {
-        QMessageBox::critical(this, QStringLiteral("Erreur"),
-                               QStringLiteral("Chargement du projet impossible : %1").arg(err));
+        QMessageBox::critical(
+            this,
+            QStringLiteral("Erreur"),
+            QStringLiteral("Chargement du projet impossible : %1").arg(err)
+        );
         return;
     }
 
@@ -1805,16 +2733,22 @@ void MainWindow::onExtractAirport()
 void MainWindow::onNewProject()
 {
     bool ok = false;
-    const QString name = QInputDialog::getText(this, QStringLiteral("Nouveau projet"),
-                                                QStringLiteral("Nom du projet (ex. ident de l'aéroport fictif) :"),
-                                                QLineEdit::Normal, QString(), &ok).trimmed();
+    const QString name = QInputDialog::getText(
+                            this,
+                            QStringLiteral("Nouveau projet"),
+                            QStringLiteral("Nom du projet (ex. ident de l'aéroport fictif) :"),
+                            QLineEdit::Normal, QString(), &ok).trimmed();
+
     if (!ok || name.isEmpty())
         return;
 
     for (const ProjectSummary& p : mStore.listProjects()) {
         if (p.name == name) {
-            QMessageBox::warning(this, QStringLiteral("Nouveau projet"),
-                                  QStringLiteral("Un projet nommé \"%1\" existe déjà.").arg(name));
+            QMessageBox::warning(
+                    this,
+                    QStringLiteral("Nouveau projet"),
+                    QStringLiteral("Un projet nommé \"%1\" existe déjà.").arg(name)
+            );
             return;
         }
     }
@@ -1827,15 +2761,21 @@ void MainWindow::onNewProject()
         const WorldIndexReader reader;
         const WorldIndexResult result = reader.readStartingIndices(worldFile);
         if (!result.success) {
-            QMessageBox::warning(this, QStringLiteral("Fichier mondial"),
-                                  QStringLiteral("Lecture impossible (%1) — démarrage à 1 pour toutes les catégories.")
-                                      .arg(result.errorMessage));
+            QMessageBox::warning(
+                    this,
+                    QStringLiteral("Fichier mondial"),
+                    QStringLiteral("Lecture impossible (%1) — démarrage à 1 pour toutes les catégories.")
+                                            .arg(result.errorMessage)
+            );
         } else {
             indices = result.indices;
             if (!result.missingSections.isEmpty()) {
-                QMessageBox::warning(this, QStringLiteral("Fichier mondial"),
-                                      QStringLiteral("Sections non trouvées (valeur 1 conservée) : %1")
-                                          .arg(result.missingSections.join(QStringLiteral(", "))));
+                QMessageBox::warning(
+                    this,
+                    QStringLiteral("Fichier mondial"),
+                    QStringLiteral("Sections non trouvées (valeur 1 conservée) : %1")
+                                            .arg(result.missingSections.join(QStringLiteral(", ")))
+                );
             }
         }
     }
@@ -1843,8 +2783,11 @@ void MainWindow::onNewProject()
     QString err;
     const qint64 id = mStore.createProject(name, indices, &err);
     if (id < 0) {
-        QMessageBox::critical(this, QStringLiteral("Erreur"),
-                               QStringLiteral("Création du projet impossible : %1").arg(err));
+        QMessageBox::critical(
+                this,
+                QStringLiteral("Erreur"),
+                QStringLiteral("Création du projet impossible : %1").arg(err)
+        );
         return;
     }
 
@@ -1857,8 +2800,11 @@ void MainWindow::onOpenProject()
 {
     const QVector<ProjectSummary> projects = mStore.listProjects();
     if (projects.isEmpty()) {
-        QMessageBox::information(this, QStringLiteral("Ouvrir un projet"),
-                                  QStringLiteral("Aucun projet enregistré pour l'instant."));
+        QMessageBox::information(
+                this,
+                QStringLiteral("Ouvrir un projet"),
+                QStringLiteral("Aucun projet enregistré pour l'instant.")
+        );
         return;
     }
 
@@ -1867,8 +2813,12 @@ void MainWindow::onOpenProject()
         labels << QStringLiteral("%1 (modifié le %2)").arg(p.name, p.updatedAt);
 
     bool ok = false;
-    const QString chosen = QInputDialog::getItem(this, QStringLiteral("Ouvrir un projet"),
-                                                  QStringLiteral("Projet :"), labels, 0, false, &ok);
+    const QString chosen =  QInputDialog::getItem(
+                                    this,
+                                    QStringLiteral("Ouvrir un projet"),
+                                    QStringLiteral("Projet :"),
+                                    labels, 0, false, &ok
+                            );
     if (!ok)
         return;
 
@@ -1888,7 +2838,11 @@ void MainWindow::onSaveProject()
 
     QString err;
     if (!mStore.saveProject(mCurrentProjectId, mProject, &err))
-        QMessageBox::critical(this, QStringLiteral("Erreur"), QStringLiteral("Sauvegarde impossible : %1").arg(err));
+        QMessageBox::critical(
+            this,
+            QStringLiteral("Erreur"),
+            QStringLiteral("Sauvegarde impossible : %1").arg(err)
+        );
     else
         statusBar()->showMessage(QStringLiteral("Projet enregistré."), 3000);
 }
@@ -1901,8 +2855,11 @@ void MainWindow::onReloadWorldFile()
         return;
 
     const QString worldFile =
-        QFileDialog::getOpenFileName(this, QStringLiteral("Nouveau fichier mondial (mise à jour mensuelle)"),
-                                     navstud::tools::Nav1DbPipeline::workingDir());
+                QFileDialog::getOpenFileName(
+                    this,
+                    QStringLiteral("Nouveau fichier mondial (mise à jour mensuelle)"),
+                    navstud::tools::Nav1DbPipeline::workingDir()
+                );
     if (worldFile.isEmpty())
         return;
 
@@ -1916,22 +2873,31 @@ bool MainWindow::applyWorldFile(const QString& worldFile)
     const WorldIndexReader reader;
     const WorldIndexResult result = reader.readStartingIndices(worldFile);
     if (!result.success) {
-        QMessageBox::warning(this, QStringLiteral("Fichier mondial"),
-                              QStringLiteral("Lecture impossible (%1).").arg(result.errorMessage));
+        QMessageBox::warning(
+            this,
+            QStringLiteral("Fichier mondial"),
+            QStringLiteral("Lecture impossible (%1).").arg(result.errorMessage)
+        );
         return false;
     }
     if (!result.missingSections.isEmpty()) {
-        QMessageBox::warning(this, QStringLiteral("Fichier mondial"),
-                              QStringLiteral("Sections non trouvées (non modifiées pour ces catégories) : %1")
-                                  .arg(result.missingSections.join(QStringLiteral(", "))));
+        QMessageBox::warning(
+            this,
+            QStringLiteral("Fichier mondial"),
+            QStringLiteral("Sections non trouvées (non modifiées pour ces catégories) : %1")
+                                     .arg(result.missingSections.join(QStringLiteral(", ")))
+        );
     }
 
     const auto reply = QMessageBox::question(
-        this, QStringLiteral("Recharger le fichier mondial"),
+        this,
+        QStringLiteral("Recharger le fichier mondial 'Nav1.txt'"),
         QStringLiteral("Tous les id du projet vont être renumérotés pour repartir des nouveaux compteurs "
-                        "(\"# Count:\") lus dans ce fichier — le contenu de chaque ligne n'est pas modifié, "
-                        "seul son numéro change. Le projet sera enregistré immédiatement après. Continuer ?"),
-        QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+                       "(\"# Count:\") lus dans ce fichier — le contenu de chaque ligne n'est pas modifié, "
+                       "seul son numéro change. Le projet sera enregistré immédiatement après. Continuer ?"),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::No
+    );
+
     if (reply != QMessageBox::Yes)
         return false;
 
@@ -1939,14 +2905,18 @@ bool MainWindow::applyWorldFile(const QString& worldFile)
 
     QString err;
     if (!mStore.updateStartingIndices(mCurrentProjectId, result.indices, &err)) {
-        QMessageBox::warning(this, QStringLiteral("Fichier mondial"),
-                              QStringLiteral("Renumérotation effectuée en mémoire, mais échec de la mise à jour "
-                                             "des compteurs de départ en base : %1").arg(err));
+        QMessageBox::warning(
+            this,
+            QStringLiteral("Fichier mondial"),
+            QStringLiteral("Renumérotation effectuée en mémoire, mais échec de la mise"
+                           " à jour des compteurs de départ en base : %1").arg(err));
     }
     if (!mStore.saveProject(mCurrentProjectId, mProject, &err)) {
-        QMessageBox::critical(this, QStringLiteral("Erreur"),
-                               QStringLiteral("Renumérotation effectuée en mémoire, mais échec de la sauvegarde : %1")
-                                   .arg(err));
+        QMessageBox::critical(
+            this,
+            QStringLiteral("Erreur"),
+            QStringLiteral("Renumérotation effectuée en mémoire, mais échec de la sauvegarde : %1").arg(err)
+        );
         return false;
     }
 
@@ -2041,9 +3011,11 @@ void MainWindow::onExportFiles()
     }
 
     if (!failures.isEmpty()) {
-        QMessageBox::critical(this,
-                              QStringLiteral("Erreur d'export"),
-                              QStringLiteral("Échec sur %1 fichier(s) :\n%2").arg(failures.size()).arg(failures.join(QStringLiteral("\n"))));
+        QMessageBox::critical(
+            this,
+            QStringLiteral("Erreur d'export"),
+            QStringLiteral("Échec sur %1 fichier(s) :\n%2").arg(failures.size()).arg(failures.join(QStringLiteral("\n")))
+        );
         return;
     }
 
@@ -2077,15 +3049,12 @@ QStringList readImportLines(const QString& dir, const QString& fileName)
 
 // -----------------------------------------------------------------------------------------------------------
 // ONIMPORTFROMTEXTFILES
-// LA MÉTHODE EST MAINTENUE POUR LE CAS OÙ, MAIS LE MENU LIÉ EST DÉSACTIVÉ POUR ÉVITER D'ÉCRASER LA BASE
-// Importe en une fois un projet à partir des 15 fichiers texte pré-extraits.
-// Import one-shot depuis 15 fichiers texte pré-extraits (un par structure,
-// noms fixes) — PAS une fonctionnalité d'import récurrente : conçue pour
-// peupler un projet une seule fois à partir de données existantes (ex.
-// classeur Excel), avec des id EXPLICITES déjà alignés sur la continuité
-// mondiale (pas besoin de StartingIndices ici, cf. UserProject.h — un id
-// explicite avance de lui-même l'allocateur au-delà du plus grand id
-// chargé). Format de chaque ligne, champs séparés par '|', id en premier :
+// LA MÉTHODE EST MAINTENUE POUR LE CAS OÙ, MAIS LE MENU LIÉ EST DÉSACTIVÉ POUR ÉVITER D'ÉCRASER LA BDD
+// Elle importe en une fois un projet (LFFA) à partir des 15 fichiers texte pré-extraits (un par structure).
+// Ça n'est PAS une fonctionnalité d'import récurrente : conçue pour peupler un projet une seule fois à partir
+// de données existantes (ex. classeur Excel), avec des id EXPLICITES déjà alignés sur la continuité mondiale
+// (pas besoin de StartingIndices ici, cf. UserProject.h).
+// Format de chaque ligne, champs séparés par '|', id en premier :
 //   points.txt                id|ident|lat|lon|magVar|holdCourse|holdDist|holdTime|holdSide
 //   waypoints.txt             id|pointIdent
 //   airports.txt              id|pointIdent|elevation|speedLimit|altLimit|transAlt|transLevel
@@ -2330,7 +3299,8 @@ void MainWindow::onImportFromTextFiles()
 
     loadProjectIntoUi(targetId, name); // recharge depuis la base (source de vérité), remplace mProject ci-dessus
     statusBar()->showMessage(QStringLiteral("Import terminé : %1 lignes réparties sur 15 structures.").arg(totalLines), 6000);
-}
+
+} // !onImportFromTextFiles
 
 
 // -----------------------------------------------------------------------------------------------------------

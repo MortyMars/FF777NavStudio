@@ -108,7 +108,10 @@ private slots:
     void onSaveProject();
     void onReloadWorldFile();
     void onExportFiles();
+
+    // Menu 'One shot', accédant à cette méthode, désactivé
     void onImportFromTextFiles();
+
     void onExtractAirport();
     void onDecodeWorldFile();
     void onIntegrateWorldFile();

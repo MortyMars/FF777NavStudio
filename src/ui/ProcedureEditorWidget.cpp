@@ -1,12 +1,12 @@
-#include "ProcedureEditorWidget.h"
-#include "EditorFieldHelpers.h"
-
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QSignalBlocker>
 #include <QVBoxLayout>
+
+#include "ProcedureEditorWidget.h"
+#include "EditorFieldHelpers.h"
 
 using namespace navstud::model;
 using namespace navstud::userdata;

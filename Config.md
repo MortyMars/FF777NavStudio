@@ -9,7 +9,8 @@
 
 #### Compiler et lancer dans le terminal
 
-Le script à utiliser pour macOS est '**build.sh**'
+Le script à utiliser pour macOS est '**build.sh**'.
+
 Dans le Terminal, à la racine du projet, taper :
 ```bash
 # Compiler (config CMake + build + bundle .app sur macOS)
@@ -52,7 +53,8 @@ Ces composants s'installent via le [Qt Online Installer](https://www.qt.io/downl
 
 #### Compilation dans PowerShell
 
-Le script à utiliser pour Windows est **build.ps1**
+Le script à utiliser pour Windows est **build.ps1**.
+
 Dans PowerShell, à la racine du projet, taper :
 ```powershell
 .\build.ps1

@@ -1,10 +1,10 @@
-#include "UnitConverterWidget.h"
-#include "EditorFieldHelpers.h"
-
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QSizePolicy>
+
+#include "UnitConverterWidget.h"
+#include "EditorFieldHelpers.h"
 
 using namespace navstud::ui;
 

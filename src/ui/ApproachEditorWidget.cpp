@@ -1,13 +1,13 @@
-#include "ApproachEditorWidget.h"
-#include "EditorFieldHelpers.h"
-#include "TextFormat.h"
-
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QSignalBlocker>
 #include <QVBoxLayout>
+
+#include "ApproachEditorWidget.h"
+#include "EditorFieldHelpers.h"
+#include "TextFormat.h"
 
 using namespace navstud::model;
 using namespace navstud::userdata;

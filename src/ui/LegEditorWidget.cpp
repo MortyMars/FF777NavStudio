@@ -1,7 +1,3 @@
-#include "LegEditorWidget.h"
-#include "EditorFieldHelpers.h"
-#include "TextFormat.h"
-
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGroupBox>
@@ -9,6 +5,10 @@
 #include <QPlainTextEdit>
 #include <QSignalBlocker>
 #include <QVBoxLayout>
+
+#include "LegEditorWidget.h"
+#include "EditorFieldHelpers.h"
+#include "TextFormat.h"
 
 using namespace navstud::model;
 using namespace navstud::userdata;
