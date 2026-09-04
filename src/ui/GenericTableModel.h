@@ -26,37 +26,37 @@ class GenericTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
-public:
-    struct Column
-    {
-        QString header;
-        std::function<QVariant(qint32 id)> getter;
-    };
+    public:
+        struct Column
+        {
+            QString header;
+            std::function<QVariant(qint32 id)> getter;
+        };
 
-    // orderFn : renvoie les id de la table wrappée, dans l'ordre
-    // d'insertion (typiquement une lambda capturant l'EntityTable* et
-    // convertissant order() en QVector<qint32>).
-    GenericTableModel(std::function<QVector<qint32>()> orderFn, QVector<Column> columns, QObject* parent = nullptr);
+        // orderFn : renvoie les id de la table wrappée, dans l'ordre
+        // d'insertion (typiquement une lambda capturant l'EntityTable* et
+        // convertissant order() en QVector<qint32>).
+        GenericTableModel(std::function<QVector<qint32>()> orderFn, QVector<Column> columns, QObject* parent = nullptr);
 
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role) const override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+        int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+        int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+        QVariant data(const QModelIndex& index, int role) const override;
+        QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-    qint32 idAt(int row) const;
+        qint32 idAt(int row) const;
 
-public slots:
-    // Reset complet — à utiliser seulement quand le NOMBRE de lignes change
-    // (ajout). Pour une édition en place, préférer notifyRowChanged().
-    void reload();
+    public slots:
+        // Reset complet — à utiliser seulement quand le NOMBRE de lignes change
+        // (ajout). Pour une édition en place, préférer notifyRowChanged().
+        void reload();
 
-    // dataChanged() ciblé, sans reset — ne perturbe ni la sélection ni le
-    // défilement en cours (important : se déclenche à chaque frappe).
-    void notifyRowChanged(qint32 id);
+        // dataChanged() ciblé, sans reset — ne perturbe ni la sélection ni le
+        // défilement en cours (important : se déclenche à chaque frappe).
+        void notifyRowChanged(qint32 id);
 
-private:
-    std::function<QVector<qint32>()> mOrderFn;
-    QVector<Column> mColumns;
+    private:
+        std::function<QVector<qint32>()> mOrderFn;
+        QVector<Column> mColumns;
 };
 
 

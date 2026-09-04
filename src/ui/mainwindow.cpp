@@ -180,14 +180,14 @@ MainWindow::MainWindow(QWidget *parent)
     // se déroulent dans le dossier de l'application (celui de l'exécutable).
     addBlockTitle(QStringLiteral("  SUITE à MàJ des AIRACS :"));
 
-    auto* decodeWorldAction = mainMenu->addAction(QStringLiteral(" Décoder 'nav1.db' -> 'nav1.txt'"));
-    mDecodeWorldAction = decodeWorldAction;
+    auto* decodeNav1dbAction = mainMenu->addAction(QStringLiteral(" Décoder 'nav1.db' -> 'nav1.txt'"));
+    mDecodeWorldAction = decodeNav1dbAction;
 
-    decodeWorldAction->setToolTip(
+    decodeNav1dbAction->setToolTip(
         QStringLiteral("Décode nav1.db en nav1.txt (dossier de l'appli), "
                        "puis recharge ce fichier pour aligner les id du projet"));
 
-    decodeWorldAction->setEnabled(false);
+    decodeNav1dbAction->setEnabled(false);
 
     auto* integrateWorldAction = mainMenu->addAction(QStringLiteral(" Compléter 'nav1.txt' et réencoder 'nav1.db'"));
     mIntegrateWorldAction = integrateWorldAction;
@@ -270,7 +270,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mSaveAction,            &QAction::triggered, this, &MainWindow::onSaveProject);
     connect(mReloadWorldAction,     &QAction::triggered, this, &MainWindow::onReloadWorldFile);
     connect(mExportAction,          &QAction::triggered, this, &MainWindow::onExportFiles);
-    connect(decodeWorldAction,      &QAction::triggered, this, &MainWindow::onDecodeWorldFile);
+    connect(decodeNav1dbAction,      &QAction::triggered, this, &MainWindow::onDecodeNav1dbFile);
     connect(integrateWorldAction,   &QAction::triggered, this, &MainWindow::onIntegrateWorldFile);
     connect(extractAirportAction,   &QAction::triggered, this, &MainWindow::onExtractAirport);
 
@@ -3885,21 +3885,26 @@ void MainWindow::onImportFromTextFiles()
 // -----------------------------------------------------------------------------------------------------------
 // Décoder nav1.db -> nav1.txt, puis recharger ce fichier mondial.
 // (opération 2 puis 3 de la chaîne)
-void MainWindow::onDecodeWorldFile()
+void MainWindow::onDecodeNav1dbFile()
 {
+    // Op 2 : décoder 'nav1;db'
     if (mCurrentProjectId < 0)
-        return;
+            return;
 
     using namespace navstud::tools;
 
     if (QFile::exists(Nav1DbPipeline::nav1TxtPath()))
-        QFile::remove(Nav1DbPipeline::nav1TxtPath());
+            QFile::remove(Nav1DbPipeline::nav1TxtPath());
 
     QString errorMessage;
     QString detail;
+
     if (!Nav1DbPipeline::decode(&errorMessage, &detail)) {
-        QMessageBox::critical(this, QStringLiteral("Décodage nav1.db"),
-                              QStringLiteral("Décodage impossible : %1").arg(errorMessage));
+        QMessageBox::critical(
+            this,
+            QStringLiteral("Décodage nav1.db"),
+            QStringLiteral("Décodage impossible : %1").arg(errorMessage)
+        );
         return;
     }
 

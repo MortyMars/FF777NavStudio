@@ -22,32 +22,36 @@ class PointTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
-public:
-    explicit PointTableModel(navstud::model::EntityTable<navstud::model::PointTag, navstud::userdata::UserPoint>* table,
-                              QObject* parent = nullptr);
+    public:
+        explicit PointTableModel(
+            navstud::model::EntityTable<navstud::model::PointTag,navstud::userdata::UserPoint>* table,
+            QObject* parent = nullptr
+        );
 
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex& index, int role) const override;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+        int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+        int columnCount(const QModelIndex& parent = QModelIndex()) const override;
 
-    // Id<PointTag> de la ligne row — pour que MainWindow sache quelle
-    // entité éditer après un clic dans la vue.
-    navstud::model::PointId idAt(int row) const;
+        QVariant data(const QModelIndex& index, int role) const override;
+        QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 
-public slots:
-    // Reset complet — à utiliser seulement quand le NOMBRE de lignes change
-    // (ajout). Pour une édition en place, préférer notifyRowChanged() :
-    // moins coûteux, et ne perturbe ni la sélection ni le défilement en
-    // cours (important puisque valueEdited() se déclenche à chaque frappe).
-    void reload();
+        // Id<PointTag> de la ligne row — pour que MainWindow sache quelle
+        // entité éditer après un clic dans la vue.
+        navstud::model::PointId idAt(int row) const;
 
-    // Notifie une modification EN PLACE d'une ligne déjà existante (édition
-    // d'un champ) — dataChanged() ciblé, sans reset du modèle.
-    void notifyRowChanged(navstud::model::PointId id);
+    public slots:
+        // Reset complet — à utiliser seulement quand le NOMBRE de lignes change
+        // (ajout). Pour une édition en place, préférer notifyRowChanged() :
+        // moins coûteux, et ne perturbe ni la sélection ni le défilement en
+        // cours (important puisque valueEdited() se déclenche à chaque frappe).
+        void reload();
 
-private:
-    navstud::model::EntityTable<navstud::model::PointTag, navstud::userdata::UserPoint>* mTable;
+        // Notifie une modification EN PLACE d'une ligne déjà existante (édition
+        // d'un champ) — dataChanged() ciblé, sans reset du modèle.
+        void notifyRowChanged(navstud::model::PointId id);
+
+    private:
+        navstud::model::EntityTable<navstud::model::PointTag, navstud::userdata::UserPoint>* mTable;
+
 };
 
 

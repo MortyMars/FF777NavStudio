@@ -19,26 +19,30 @@ class RunwayProcedureTransitionEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit RunwayProcedureTransitionEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit RunwayProcedureTransitionEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::RunwayProcedureTransitionId id,
-                  const navstud::userdata::UserRunwayProcedureTransition& transition);
-    navstud::userdata::UserRunwayProcedureTransition value() const;
+        void setValue(
+            navstud::model::RunwayProcedureTransitionId id,
+            const navstud::userdata::UserRunwayProcedureTransition& transition
+        );
 
-    void focusFirstField();
-    void setPreviewLine(const QString& text);
+        navstud::userdata::UserRunwayProcedureTransition value() const;
 
-signals:
-    void valueEdited();
+        void focusFirstField();
+        void setPreviewLine(const QString& text);
 
-private:
-    navstud::model::RunwayProcedureTransitionId mCurrentId = navstud::model::RunwayProcedureTransitionId::invalid();
+    signals:
+        void valueEdited();
 
-    QLineEdit*      mRunwayIdentEdit;
-    QLineEdit*      mProcedureIdentEdit;
-    QLineEdit*      mLegSequenceIdentEdit;
-    QPlainTextEdit* mPreview;
+    private:
+        navstud::model::RunwayProcedureTransitionId mCurrentId = navstud::model::RunwayProcedureTransitionId::invalid();
+
+        QLineEdit*      mRunwayIdentEdit;
+        QLineEdit*      mProcedureIdentEdit;
+        QLineEdit*      mLegSequenceIdentEdit;
+        QPlainTextEdit* mPreview;
+
 };
 
 

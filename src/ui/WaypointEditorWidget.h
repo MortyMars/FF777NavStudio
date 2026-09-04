@@ -25,26 +25,27 @@ class WaypointEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit WaypointEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit WaypointEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::WaypointId id, const navstud::userdata::UserWaypoint& waypoint);
-    navstud::userdata::UserWaypoint value() const;
+        void setValue(navstud::model::WaypointId id, const navstud::userdata::UserWaypoint& waypoint);
+        navstud::userdata::UserWaypoint value() const;
 
-    void focusFirstField();
+        void focusFirstField();
 
-    // Poussée par MainWindow après régénération — ligne résolue, ou message
-    // d'erreur préfixé "⚠ " en cas d'échec de conversion.
-    void setPreviewLine(const QString& text);
+        // Poussée par MainWindow après régénération — ligne résolue, ou message
+        // d'erreur préfixé "⚠ " en cas d'échec de conversion.
+        void setPreviewLine(const QString& text);
 
-signals:
-    void valueEdited();
+    signals:
+        void valueEdited();
 
-private:
-    navstud::model::WaypointId mCurrentId = navstud::model::WaypointId::invalid();
+    private:
+        navstud::model::WaypointId mCurrentId = navstud::model::WaypointId::invalid();
 
-    QLineEdit*      mPointIdentEdit;
-    QPlainTextEdit* mPreview;
+        QLineEdit*      mPointIdentEdit;
+        QPlainTextEdit* mPreview;
+
 };
 
 

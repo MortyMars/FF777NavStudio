@@ -16,26 +16,26 @@ class LegSequenceEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit LegSequenceEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit LegSequenceEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::LegSequenceId id, const navstud::userdata::UserLegSequence& legSequence);
-    navstud::userdata::UserLegSequence value() const;
+        void setValue(navstud::model::LegSequenceId id, const navstud::userdata::UserLegSequence& legSequence);
+        navstud::userdata::UserLegSequence value() const;
 
-    void focusFirstField();
-    void setPreviewLine(const QString& text);
+        void focusFirstField();
+        void setPreviewLine(const QString& text);
 
-signals:
-    void valueEdited();
+    signals:
+        void valueEdited();
 
-private:
-    navstud::model::LegSequenceId mCurrentId = navstud::model::LegSequenceId::invalid();
+    private:
+        navstud::model::LegSequenceId mCurrentId = navstud::model::LegSequenceId::invalid();
 
-    QLineEdit*      mIdentEdit;
-    QComboBox*      mIlsOrRnavCombo;
-    QComboBox*      mProcedureKindCombo;
-    QLineEdit*      mAltitudeLevelTransEdit;
-    QPlainTextEdit* mPreview;
+        QLineEdit*      mIdentEdit;
+        QComboBox*      mIlsOrRnavCombo;
+        QComboBox*      mProcedureKindCombo;
+        QLineEdit*      mAltitudeLevelTransEdit;
+        QPlainTextEdit* mPreview;
 };
 
 

@@ -18,24 +18,28 @@ class ProcedureEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit ProcedureEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit ProcedureEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::ProcedureId id, const navstud::userdata::UserProcedure& procedure);
-    navstud::userdata::UserProcedure value() const;
+        void setValue(
+            navstud::model::ProcedureId id,
+            const navstud::userdata::UserProcedure& procedure
+        );
 
-    void focusFirstField();
-    void setPreviewLine(const QString& text);
+        navstud::userdata::UserProcedure value() const;
 
-signals:
-    void valueEdited();
+        void focusFirstField();
+        void setPreviewLine(const QString& text);
 
-private:
-    navstud::model::ProcedureId mCurrentId = navstud::model::ProcedureId::invalid();
+    signals:
+        void valueEdited();
 
-    QLineEdit*      mAirportIdentEdit;
-    QLineEdit*      mLegSequenceIdentEdit;
-    QPlainTextEdit* mPreview;
+    private:
+        navstud::model::ProcedureId mCurrentId = navstud::model::ProcedureId::invalid();
+
+        QLineEdit*      mAirportIdentEdit;
+        QLineEdit*      mLegSequenceIdentEdit;
+        QPlainTextEdit* mPreview;
 };
 
 

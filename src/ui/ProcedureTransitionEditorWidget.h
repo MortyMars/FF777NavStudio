@@ -16,24 +16,29 @@ class ProcedureTransitionEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit ProcedureTransitionEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit ProcedureTransitionEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::ProcedureTransitionId id, const navstud::userdata::UserProcedureTransition& transition);
-    navstud::userdata::UserProcedureTransition value() const;
+        void setValue(
+            navstud::model::ProcedureTransitionId id,
+            const navstud::userdata::UserProcedureTransition& transition
+        );
 
-    void focusFirstField();
-    void setPreviewLine(const QString& text);
+        navstud::userdata::UserProcedureTransition value() const;
 
-signals:
-    void valueEdited();
+        void focusFirstField();
+        void setPreviewLine(const QString& text);
 
-private:
-    navstud::model::ProcedureTransitionId mCurrentId = navstud::model::ProcedureTransitionId::invalid();
+    signals:
+        void valueEdited();
 
-    QLineEdit*      mProcedureIdentEdit;
-    QLineEdit*      mLegSequenceIdentEdit;
-    QPlainTextEdit* mPreview;
+    private:
+        navstud::model::ProcedureTransitionId mCurrentId = navstud::model::ProcedureTransitionId::invalid();
+
+        QLineEdit*      mProcedureIdentEdit;
+        QLineEdit*      mLegSequenceIdentEdit;
+        QPlainTextEdit* mPreview;
+
 };
 
 

@@ -16,37 +16,37 @@ class LegEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit LegEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit LegEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::LegId id, const navstud::userdata::UserLeg& leg);
-    navstud::userdata::UserLeg value() const;
+        void setValue(navstud::model::LegId id, const navstud::userdata::UserLeg& leg);
+        navstud::userdata::UserLeg value() const;
 
-    void focusFirstField();
-    void setPreviewLine(const QString& text);
+        void focusFirstField();
+        void setPreviewLine(const QString& text);
 
-signals:
-    void valueEdited();
+    signals:
+        void valueEdited();
 
-private:
-    navstud::model::LegId mCurrentId = navstud::model::LegId::invalid();
+    private:
+        navstud::model::LegId mCurrentId = navstud::model::LegId::invalid();
 
-    QComboBox*      mCodePathCombo;
-    QLineEdit*      mLegSequenceIdentEdit;
-    QLineEdit*      mPointIdentEdit;
-    QComboBox*      mWpDescriptionCombo;
-    QLineEdit*      mCourseEdit;
-    QLineEdit*      mDistanceEdit;
-    QLineEdit*      mNavaidIdentEdit;
-    QLineEdit*      mNavaidCourseEdit;
-    QLineEdit*      mNavaidDistanceEdit;
-    QLineEdit*      mAltitudeLimitMinEdit;
-    QLineEdit*      mAltitudeLimitMaxEdit;
-    QLineEdit*      mAirSpeedLimitEdit;
-    QLineEdit*      mPathEdit;
-    QComboBox*      mTurnDirCombo;
-    QLineEdit*      mRnpEdit;
-    QPlainTextEdit* mPreview;
+        QComboBox*      mCodePathCombo;
+        QLineEdit*      mLegSequenceIdentEdit;
+        QLineEdit*      mPointIdentEdit;
+        QComboBox*      mWpDescriptionCombo;
+        QLineEdit*      mCourseEdit;
+        QLineEdit*      mDistanceEdit;
+        QLineEdit*      mNavaidIdentEdit;
+        QLineEdit*      mNavaidCourseEdit;
+        QLineEdit*      mNavaidDistanceEdit;
+        QLineEdit*      mAltitudeLimitMinEdit;
+        QLineEdit*      mAltitudeLimitMaxEdit;
+        QLineEdit*      mAirSpeedLimitEdit;
+        QLineEdit*      mPathEdit;
+        QComboBox*      mTurnDirCombo;
+        QLineEdit*      mRnpEdit;
+        QPlainTextEdit* mPreview;
 };
 
 #endif //LEGEDITORWIDGET_H

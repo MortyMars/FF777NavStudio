@@ -15,24 +15,24 @@ class ApproachTransitionEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit ApproachTransitionEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit ApproachTransitionEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::ApproachTransitionId id, const navstud::userdata::UserApproachTransition& transition);
-    navstud::userdata::UserApproachTransition value() const;
+        void setValue(navstud::model::ApproachTransitionId id, const navstud::userdata::UserApproachTransition& transition);
+        navstud::userdata::UserApproachTransition value() const;
 
-    void focusFirstField();
-    void setPreviewLine(const QString& text);
+        void focusFirstField();
+        void setPreviewLine(const QString& text);
 
-signals:
-    void valueEdited();
+    signals:
+        void valueEdited();
 
-private:
-    navstud::model::ApproachTransitionId mCurrentId = navstud::model::ApproachTransitionId::invalid();
+    private:
+        navstud::model::ApproachTransitionId mCurrentId = navstud::model::ApproachTransitionId::invalid();
 
-    QLineEdit*      mApproachIdentEdit;
-    QLineEdit*      mLegSequenceIdentEdit;
-    QPlainTextEdit* mPreview;
+        QLineEdit*      mApproachIdentEdit;
+        QLineEdit*      mLegSequenceIdentEdit;
+        QPlainTextEdit* mPreview;
 };
 
 #endif //APPROACHTRANSITIONEDITORWIDGET_H

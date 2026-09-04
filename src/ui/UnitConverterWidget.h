@@ -20,15 +20,16 @@ class UnitConverterWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    // labelFrom/labelTo : libellés courts affichés de part et d'autre (ex.
-    // "ft"/"m"). factor : value(labelTo) = value(labelFrom) * factor.
-    UnitConverterWidget(const QString& labelFrom, const QString& labelTo, double factor, QWidget* parent = nullptr);
+    public:
+        // labelFrom/labelTo : libellés courts affichés de part et d'autre (ex.
+        // "ft"/"m"). factor : value(labelTo) = value(labelFrom) * factor.
+        UnitConverterWidget(const QString& labelFrom, const QString& labelTo, double factor, QWidget* parent = nullptr);
 
-private:
-    QLineEdit* mFromEdit;
-    QLineEdit* mToEdit;
-    double     mFactor;
+    private:
+        QLineEdit* mFromEdit;
+        QLineEdit* mToEdit;
+        double     mFactor;
+
 };
 
 

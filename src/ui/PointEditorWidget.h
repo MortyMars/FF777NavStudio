@@ -26,42 +26,43 @@ class PointEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit PointEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit PointEditorWidget(QWidget* parent = nullptr);
 
-    // id sert à afficher un aperçu fidèle (le numéro fait partie de la
-    // ligne texte) — passé séparément du contenu car il est attribué à la
-    // création de la ligne côté UserProject, pas par ce widget.
-    void setValue(navstud::model::PointId id, const navstud::userdata::UserPoint& point);
-    navstud::userdata::UserPoint value() const;
+        // id sert à afficher un aperçu fidèle (le numéro fait partie de la
+        // ligne texte) — passé séparément du contenu car il est attribué à la
+        // création de la ligne côté UserProject, pas par ce widget.
+        void setValue(navstud::model::PointId id, const navstud::userdata::UserPoint& point);
+        navstud::userdata::UserPoint value() const;
 
-    // Place le focus clavier sur le champ Ident et sélectionne son contenu
-    // — confort après la création d'une nouvelle ligne.
-    void focusIdent();
+        // Place le focus clavier sur le champ Ident et sélectionne son contenu
+        // — confort après la création d'une nouvelle ligne.
+        void focusIdent();
 
-signals:
-    // Émis à chaque frappe/changement dans un champ. Le dataset visé (au
-    // plus quelques centaines de lignes par projet) rend ce coût
-    // négligeable — pas de throttling nécessaire à ce stade.
-    void valueEdited();
+    signals:
+        // Émis à chaque frappe/changement dans un champ. Le dataset visé (au
+        // plus quelques centaines de lignes par projet) rend ce coût
+        // négligeable — pas de throttling nécessaire à ce stade.
+        void valueEdited();
 
-private slots:
-    void onFieldChanged();
+    private slots:
+        void onFieldChanged();
 
-private:
-    void updatePreview();
+    private:
+        void updatePreview();
 
-    navstud::model::PointId mCurrentId = navstud::model::PointId::invalid();
+        navstud::model::PointId mCurrentId = navstud::model::PointId::invalid();
 
-    QLineEdit*      mIdentEdit;
-    QLineEdit*      mLatitudeEdit;
-    QLineEdit*      mLongitudeEdit;
-    QLineEdit*      mMagVarEdit;
-    QLineEdit*      mHoldCourseEdit;
-    QLineEdit*      mHoldDistEdit;
-    QLineEdit*      mHoldTimeEdit;
-    QComboBox*      mHoldSideCombo;
-    QPlainTextEdit* mPreview;
+        QLineEdit*      mIdentEdit;
+        QLineEdit*      mLatitudeEdit;
+        QLineEdit*      mLongitudeEdit;
+        QLineEdit*      mMagVarEdit;
+        QLineEdit*      mHoldCourseEdit;
+        QLineEdit*      mHoldDistEdit;
+        QLineEdit*      mHoldTimeEdit;
+        QComboBox*      mHoldSideCombo;
+        QPlainTextEdit* mPreview;
+
 };
 
 

@@ -15,28 +15,32 @@ class AirportEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit AirportEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit AirportEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::AirportId id, const navstud::userdata::UserAirport& airport);
-    navstud::userdata::UserAirport value() const;
+        void setValue(
+            navstud::model::AirportId id,
+            const navstud::userdata::UserAirport& airport
+        );
 
-    void focusFirstField();
-    void setPreviewLine(const QString& text);
+        navstud::userdata::UserAirport value() const;
 
-signals:
-    void valueEdited();
+        void focusFirstField();
+        void setPreviewLine(const QString& text);
 
-private:
-    navstud::model::AirportId mCurrentId = navstud::model::AirportId::invalid();
+    signals:
+        void valueEdited();
 
-    QLineEdit*      mPointIdentEdit;
-    QLineEdit*      mElevationEdit;
-    QLineEdit*      mLimitSpeedEdit;
-    QLineEdit*      mLimitAltitudeEdit;
-    QLineEdit*      mTransAltitudeEdit;
-    QLineEdit*      mTransLevelEdit;
-    QPlainTextEdit* mPreview;
+    private:
+        navstud::model::AirportId mCurrentId = navstud::model::AirportId::invalid();
+
+        QLineEdit*      mPointIdentEdit;
+        QLineEdit*      mElevationEdit;
+        QLineEdit*      mLimitSpeedEdit;
+        QLineEdit*      mLimitAltitudeEdit;
+        QLineEdit*      mTransAltitudeEdit;
+        QLineEdit*      mTransLevelEdit;
+        QPlainTextEdit* mPreview;
 };
 
 

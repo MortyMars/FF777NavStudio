@@ -15,26 +15,26 @@ class ApproachEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit ApproachEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit ApproachEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::ApproachId id, const navstud::userdata::UserApproach& approach);
-    navstud::userdata::UserApproach value() const;
+        void setValue(navstud::model::ApproachId id, const navstud::userdata::UserApproach& approach);
+        navstud::userdata::UserApproach value() const;
 
-    void focusFirstField();
-    void setPreviewLine(const QString& text);
+        void focusFirstField();
+        void setPreviewLine(const QString& text);
 
-signals:
-    void valueEdited();
+    signals:
+        void valueEdited();
 
-private:
-    navstud::model::ApproachId mCurrentId = navstud::model::ApproachId::invalid();
+    private:
+        navstud::model::ApproachId mCurrentId = navstud::model::ApproachId::invalid();
 
-    QLineEdit*      mRunwayIdentEdit;
-    QLineEdit*      mLegSequenceIdentEdit;
-    QLineEdit*      mDecisionHeightEdit;
-    QLineEdit*      mMinimumDescentEdit;
-    QPlainTextEdit* mPreview;
+        QLineEdit*      mRunwayIdentEdit;
+        QLineEdit*      mLegSequenceIdentEdit;
+        QLineEdit*      mDecisionHeightEdit;
+        QLineEdit*      mMinimumDescentEdit;
+        QPlainTextEdit* mPreview;
 };
 
 

@@ -66,14 +66,14 @@ QString toString(Severity severity)
 QString toString(EntityKind kind)
 {
     switch (kind) {
-    case EntityKind::Point:                          return QStringLiteral("Point");
-    case EntityKind::Waypoint:                       return QStringLiteral("Waypoint");
-    case EntityKind::Navaid:                         return QStringLiteral("Navaid");
-    case EntityKind::Airport:                        return QStringLiteral("Airport");
-    case EntityKind::Runway:                         return QStringLiteral("Runway");
+    case EntityKind::Point:                           return QStringLiteral("Point");
+    case EntityKind::Waypoint:                        return QStringLiteral("Waypoint");
+    case EntityKind::Navaid:                          return QStringLiteral("Navaid");
+    case EntityKind::Airport:                         return QStringLiteral("Airport");
+    case EntityKind::Runway:                          return QStringLiteral("Runway");
     case EntityKind::LegSequence:                     return QStringLiteral("LegSequence");
-    case EntityKind::Leg:                            return QStringLiteral("Leg");
-    case EntityKind::Approach:                       return QStringLiteral("Approach");
+    case EntityKind::Leg:                             return QStringLiteral("Leg");
+    case EntityKind::Approach:                        return QStringLiteral("Approach");
     case EntityKind::ApproachTransition:              return QStringLiteral("ApproachTransition");
     case EntityKind::SidProcedure:                    return QStringLiteral("Procedure(SID)");
     case EntityKind::StarProcedure:                   return QStringLiteral("Procedure(STAR)");
@@ -169,9 +169,47 @@ int runTestNavaid()
 {
     ProjectRepository repo;
 
-    const PointId point07  = repo.points().add(Point{ QStringLiteral("07"), 49.265336595, 3.143170287, 2.3, -1.0, -1.0, -1.0, 0 }, PointId(326256));
-    const PointId pointGS07 = repo.points().add(Point{ QStringLiteral("GS07"), 49.264644688, 3.145580018, 2.3, -1.0, -1.0, -1.0, 0 }, PointId(326292));
-    const PointId pointLFFA = repo.points().add(Point{ QStringLiteral("LFFA"), 49.266236111, 3.166947222, 2.3, -1.0, -1.0, -1.0, 0 }, PointId(326303));
+    const PointId point07  = repo.points().add(
+        Point{
+            QStringLiteral("07"),
+            49.265336595,
+            3.143170287,
+            2.3,
+            -1.0,
+            -1.0,
+            -1.0,
+            0
+        },
+        PointId(326256)
+    );
+
+    const PointId pointGS07 = repo.points().add(
+        Point{
+            QStringLiteral("GS07"),
+            49.264644688,
+            3.145580018,
+            2.3,
+            -1.0,
+            -1.0,
+            -1.0,
+            0
+        },
+        PointId(326292)
+    );
+
+    const PointId pointLFFA = repo.points().add(
+        Point{
+            QStringLiteral("LFFA"),
+            49.266236111,
+            3.166947222,
+            2.3,
+            -1.0,
+            -1.0,
+            -1.0,
+            0
+        },
+        PointId(326303)
+    );
 
     Airport airport;
     airport.pointId = pointLFFA;
@@ -196,24 +234,62 @@ int runTestNavaid()
 
     const QVector<UserNavaid> samples = {
         // OK : LOC référençant le GS existant comme navaid associé (2 sauts pt -> Navaid)
-        UserNavaid{ QStringLiteral("LOC+GS+DME"), QStringLiteral("GS07"), QStringLiteral("GS07"),
-                    135.0, 2.3, 10895, QStringLiteral("3"), 78.0, 0.0, QStringLiteral("07") },
+        UserNavaid{
+            QStringLiteral("LOC+GS+DME"),
+            QStringLiteral("GS07"),
+            QStringLiteral("GS07"),
+            135.0,
+            2.3,
+            10895,
+            QStringLiteral("3"),
+            78.0,
+            0.0,
+            QStringLiteral("07")
+        },
+
         // OK : aucun navaid associé (-1)
-        UserNavaid{ QStringLiteral("VOR"), QStringLiteral("07"), QStringLiteral("-1"),
-                    135.0, 2.3, 11100, QStringLiteral("0"), 0.0, 0.0, QStringLiteral("07") },
+        UserNavaid{
+            QStringLiteral("VOR"),
+            QStringLiteral("07"),
+            QStringLiteral("-1"),
+            135.0,
+            2.3,
+            11100,
+            QStringLiteral("0"),
+            0.0,
+            0.0,
+            QStringLiteral("07")
+        },
+
         // ECHEC : piste introuvable
-        UserNavaid{ QStringLiteral("DME"), QStringLiteral("07"), QStringLiteral("-1"),
-                    135.0, 2.3, 11100, QStringLiteral("0"), 0.0, 0.0, QStringLiteral("99") },
+        UserNavaid{
+            QStringLiteral("DME"),
+            QStringLiteral("07"),
+            QStringLiteral("-1"),
+            135.0,
+            2.3,
+            11100,
+            QStringLiteral("0"),
+            0.0,
+            0.0,
+            QStringLiteral("99")
+        },
     };
 
     for (const UserNavaid& sample : samples) {
         const ConversionResult<Navaid> result = convertNavaid(sample, resolver);
         if (result.isOk())
             out() << QStringLiteral("OK    type=\"%1\" pointIdent=\"%2\" -> runwayId=%3, distanceNavaidId=%4\n")
-                .arg(sample.type, sample.pointIdent).arg(result.value().runwayId.value()).arg(result.value().distanceNavaidId.value());
+                .arg(sample.type, sample.pointIdent)
+                .arg(result.value().runwayId.value())
+                .arg(result.value().distanceNavaidId.value());
         else
             out() << QStringLiteral("ECHEC type=\"%1\" pointIdent=\"%2\" : %3\n")
-                .arg(sample.type, sample.pointIdent, result.errors().join(QStringLiteral("; ")));
+                .arg(
+                    sample.type,
+                    sample.pointIdent,
+                    result.errors().join(QStringLiteral("; "))
+                );
     }
 
     return 0;
@@ -391,21 +467,24 @@ int runTestPersistence()
     printRegenerationResult(QStringLiteral("après rechargement depuis SQLite"), afterReload);
 
     const bool sameEntityCounts =
-        beforeSave.repository.points().count()  == afterReload.repository.points().count() &&
-        beforeSave.repository.airports().count() == afterReload.repository.airports().count() &&
-        beforeSave.repository.runways().count()  == afterReload.repository.runways().count() &&
-        beforeSave.repository.navaids().count()  == afterReload.repository.navaids().count() &&
-        beforeSave.repository.legSequences().count() == afterReload.repository.legSequences().count() &&
-        beforeSave.repository.legs().count()     == afterReload.repository.legs().count() &&
+        beforeSave.repository.points().count()        == afterReload.repository.points().count() &&
+        beforeSave.repository.airports().count()      == afterReload.repository.airports().count() &&
+        beforeSave.repository.runways().count()       == afterReload.repository.runways().count() &&
+        beforeSave.repository.navaids().count()       == afterReload.repository.navaids().count() &&
+        beforeSave.repository.legSequences().count()  == afterReload.repository.legSequences().count() &&
+        beforeSave.repository.legs().count()          == afterReload.repository.legs().count() &&
         beforeSave.repository.sidProcedures().count() == afterReload.repository.sidProcedures().count() &&
-        beforeSave.repository.sidRunwayProcedureTransitions().count() == afterReload.repository.sidRunwayProcedureTransitions().count();
+        beforeSave.repository.sidRunwayProcedureTransitions().count() == afterReload.repository
+                                                                        .sidRunwayProcedureTransitions().count();
 
     const LegSequence* before = beforeSave.repository.legSequences().find(LegSequenceId(1));
     const LegSequence* after  = afterReload.repository.legSequences().find(LegSequenceId(1));
     const bool sameTransitionValue = before && after && qFuzzyCompare(before->transitionInMeters, after->transitionInMeters);
 
-    out() << QStringLiteral("Effectifs identiques avant/après : %1\n").arg(sameEntityCounts ? QStringLiteral("oui") : QStringLiteral("NON"));
-    out() << QStringLiteral("DPR07 transitionInMeters identique : %1\n").arg(sameTransitionValue ? QStringLiteral("oui") : QStringLiteral("NON"));
+    out() << QStringLiteral("Effectifs identiques avant/après : %1\n")
+                 .arg(sameEntityCounts ? QStringLiteral("oui") : QStringLiteral("NON"));
+    out() << QStringLiteral("DPR07 transitionInMeters identique : %1\n")
+                 .arg(sameTransitionValue ? QStringLiteral("oui") : QStringLiteral("NON"));
 
     return (afterReload.isValid() && sameEntityCounts && sameTransitionValue) ? 0 : 1;
 }

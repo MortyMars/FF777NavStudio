@@ -15,31 +15,36 @@ class RunwayEditorWidget : public QWidget
 {
     Q_OBJECT
 
-public:
-    explicit RunwayEditorWidget(QWidget* parent = nullptr);
+    public:
+        explicit RunwayEditorWidget(QWidget* parent = nullptr);
 
-    void setValue(navstud::model::RunwayId id, const navstud::userdata::UserRunway& runway);
-    navstud::userdata::UserRunway value() const;
+        void setValue(
+            navstud::model::RunwayId id,
+            const navstud::userdata::UserRunway& runway
+        );
 
-    void focusFirstField();
-    void setPreviewLine(const QString& text);
+        navstud::userdata::UserRunway value() const;
 
-signals:
-    void valueEdited();
+        void focusFirstField();
+        void setPreviewLine(const QString& text);
 
-private:
-    navstud::model::RunwayId mCurrentId = navstud::model::RunwayId::invalid();
+    signals:
+        void valueEdited();
 
-    QLineEdit*      mAirportIdentEdit;
-    QLineEdit*      mThresholdIdentEdit;
-    QLineEdit*      mElevationEdit;
-    QLineEdit*      mGradientEdit;
-    QLineEdit*      mCourseEdit;
-    QLineEdit*      mLengthEdit;
-    QLineEdit*      mDisplacedEdit;
-    QLineEdit*      mStopwayEdit;
-    QLineEdit*      mCrossEdit;
-    QPlainTextEdit* mPreview;
+    private:
+        navstud::model::RunwayId mCurrentId = navstud::model::RunwayId::invalid();
+
+        QLineEdit*      mAirportIdentEdit;
+        QLineEdit*      mThresholdIdentEdit;
+        QLineEdit*      mElevationEdit;
+        QLineEdit*      mGradientEdit;
+        QLineEdit*      mCourseEdit;
+        QLineEdit*      mLengthEdit;
+        QLineEdit*      mDisplacedEdit;
+        QLineEdit*      mStopwayEdit;
+        QLineEdit*      mCrossEdit;
+        QPlainTextEdit* mPreview;
+
 };
 
 

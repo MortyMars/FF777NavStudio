@@ -40,63 +40,68 @@ class AirportExtractDialog : public QDialog
 {
     Q_OBJECT
 
-public:
-    explicit AirportExtractDialog(navstud::persistence::ProjectStore& store, QWidget* parent = nullptr);
-    ~AirportExtractDialog() override;
+    public:
+        explicit AirportExtractDialog(
+            navstud::persistence::ProjectStore& store,
+            QWidget* parent = nullptr
+        );
 
-signals:
-    // Émise après qu'un projet a été créé/remplacé à partir de l'extraction.
-    void projectCreated(qint64 id, const QString& name);
+        ~AirportExtractDialog() override;
 
-private slots:
-    void browseSourceFile();
-    void browseOutputFile();
-    void loadSource();
-    void onAirportChanged();
-    void runExtract();
-    void onLoadFinished();
-    void onBuildFinished();
+    signals:
+        // Émise après qu'un projet a été créé/remplacé à partir de l'extraction.
+        void projectCreated(qint64 id, const QString& name);
 
-private:
-    struct LoadOutcome
-    {
-        std::shared_ptr<navstud::extract::NavDataBase> db;
-        QString error;
-    };
-    struct BuildOutcome
-    {
-        bool ok = false;
-        QString error;
-        QStringList warnings;
-        QString outputPath;
-        QString icao;
-        navstud::extract::NavDataBase::ExtractStats stats;
-        navstud::userdata::UserProject project;
-        navstud::userdata::StartingIndices indices;
-        bool indicesOk = false;
-        QStringList missingSections;
-    };
+    private slots:
+        void browseSourceFile();
+        void browseOutputFile();
+        void loadSource();
+        void onAirportChanged();
+        void runExtract();
+        void onLoadFinished();
+        void onBuildFinished();
 
-    void setBusy(bool busy);
-    void appendLog(const QString& text);
-    QString currentIcao() const;
+    private:
+        struct LoadOutcome
+        {
+            std::shared_ptr<navstud::extract::NavDataBase> db;
+            QString error;
+        };
+        struct BuildOutcome
+        {
+            bool ok = false;
+            QString error;
+            QStringList warnings;
+            QString outputPath;
+            QString icao;
+            navstud::extract::NavDataBase::ExtractStats stats;
+            navstud::userdata::UserProject project;
+            navstud::userdata::StartingIndices indices;
+            bool indicesOk = false;
+            QStringList missingSections;
+        };
 
-    navstud::persistence::ProjectStore& mStore;
+        void setBusy(bool busy);
+        void appendLog(const QString& text);
+        QString currentIcao() const;
 
-    std::shared_ptr<navstud::extract::NavDataBase> mDb;
-    QStringList mAirportIdents;
-    QFutureWatcher<LoadOutcome>  mLoadWatcher;
-    QFutureWatcher<BuildOutcome> mBuildWatcher;
+        navstud::persistence::ProjectStore& mStore;
 
-    QLineEdit*      mSourceEdit = nullptr;
-    QPushButton*    mBrowseSourceButton = nullptr;
-    QPushButton*    mLoadButton = nullptr;
-    QComboBox*      mAirportCombo = nullptr;
-    QLineEdit*      mOutputEdit = nullptr;
-    QPushButton*    mBrowseOutputButton = nullptr;
-    QCheckBox*      mCreateProjectCheck = nullptr;
-    QLabel*         mStatusLabel = nullptr;
-    QPlainTextEdit* mLogEdit = nullptr;
-    QPushButton*    mExtractButton = nullptr;
-    QPushButton*    mCloseButton = nullptr;
+        std::shared_ptr<navstud::extract::NavDataBase> mDb;
+        QStringList mAirportIdents;
+        QFutureWatcher<LoadOutcome>  mLoadWatcher;
+        QFutureWatcher<BuildOutcome> mBuildWatcher;
+
+        QLineEdit*      mSourceEdit = nullptr;
+        QPushButton*    mBrowseSourceButton = nullptr;
+        QPushButton*    mLoadButton = nullptr;
+        QComboBox*      mAirportCombo = nullptr;
+        QLineEdit*      mOutputEdit = nullptr;
+        QPushButton*    mBrowseOutputButton = nullptr;
+        QCheckBox*      mCreateProjectCheck = nullptr;
+        QLabel*         mStatusLabel = nullptr;
+        QPlainTextEdit* mLogEdit = nullptr;
+        QPushButton*    mExtractButton = nullptr;
+        QPushButton*    mCloseButton = nullptr;
+
 };
