@@ -338,12 +338,12 @@ int runTestRegenFull()
 // symétrique de test-regen-full pour le moteur de conversion.
 int runTestPersistence()
 {
-    const QString dbPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
+    const QString sqlitePath = QStandardPaths::writableLocation(QStandardPaths::TempLocation)
                             + QStringLiteral("/FF777NavStudio_persistence_test.sqlite");
 
-    qDebug() << "Chemin de la BDD = " << dbPath;
+    qDebug() << "Chemin de la BDD = " << sqlitePath;
 
-    QFile::remove(dbPath); // repart d'un fichier neuf à chaque exécution du test
+    QFile::remove(sqlitePath); // repart d'un fichier neuf à chaque exécution du test
 
     const UserProject original = buildLffaSubsetUserProject();
     const Regenerator regenerator;
@@ -354,7 +354,7 @@ int runTestPersistence()
     {
         ProjectStore store;
         QString errorMessage;
-        if (!store.open(dbPath, &errorMessage)) {
+        if (!store.open(sqlitePath, &errorMessage)) {
             out() << QStringLiteral("ECHEC ouverture : %1\n").arg(errorMessage);
             return 1;
         }
@@ -367,7 +367,7 @@ int runTestPersistence()
             out() << QStringLiteral("ECHEC sauvegarde : %1\n").arg(errorMessage);
             return 1;
         }
-        out() << QStringLiteral("Projet #%1 sauvegardé dans %2\n").arg(projectId).arg(dbPath);
+        out() << QStringLiteral("Projet #%1 sauvegardé dans %2\n").arg(projectId).arg(sqlitePath);
     }
 
     // Nouveau ProjectStore, nouvelle ouverture — aucun état en mémoire réutilisé.
@@ -375,7 +375,7 @@ int runTestPersistence()
     {
         ProjectStore store;
         QString errorMessage;
-        if (!store.open(dbPath, &errorMessage)) {
+        if (!store.open(sqlitePath, &errorMessage)) {
             out() << QStringLiteral("ECHEC réouverture : %1\n").arg(errorMessage);
             return 1;
         }

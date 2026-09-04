@@ -247,11 +247,11 @@ ProjectStore::~ProjectStore()
 
 // -----------------------------------------------------------------------------------------------------------
 // Ouvre la base SQLite, crée le schéma si besoin et applique les migrations.
-bool ProjectStore::open(const QString& dbPath, QString* errorMessage)
+bool ProjectStore::open(const QString& sqlitePath, QString* errorMessage)
 {
     mConnectionName = nextConnectionName();
     mDb = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"), mConnectionName);
-    mDb.setDatabaseName(dbPath);
+    mDb.setDatabaseName(sqlitePath);
     if (!mDb.open()) {
         if (errorMessage) *errorMessage = mDb.lastError().text();
         return false;

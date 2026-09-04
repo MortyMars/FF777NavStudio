@@ -104,12 +104,15 @@ MainWindow::MainWindow(QWidget *parent)
     // Base SQLite
     const QString appDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(appDataDir);
-    const QString dbPath = appDataDir + QStringLiteral("/projects.sqlite");
+    const QString sqlitePath = appDataDir + QStringLiteral("/projects.sqlite");
 
     QString storeError;
-    if (!mStore.open(dbPath, &storeError)) {
-        QMessageBox::critical(this, QStringLiteral("Base de données"),
-                               QStringLiteral("Impossible d'ouvrir %1 : %2").arg(dbPath, storeError));
+    if (!mStore.open(sqlitePath, &storeError)) {
+        QMessageBox::critical(
+            this,
+            QStringLiteral("Base de données"),
+            QStringLiteral("Impossible d'ouvrir %1 : %2").arg(sqlitePath, storeError)
+        );
     }
 
     // ------------------------------------------------------------------------------------------------------
@@ -140,12 +143,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     // BLOC DE MENUS 'PROJETS' ------------------------------------------------------------------------------
     addBlockTitle(QStringLiteral("  PROJETS :"));
+
     QAction* newProjectAction  = mainMenu->addAction(QStringLiteral(" Nouveau projet"));
     QAction* openProjectAction = mainMenu->addAction(QStringLiteral(" Ouvrir un projet"));
     QAction* extractAirportAction = mainMenu->addAction(QStringLiteral(" Aéroport existant -> Projet"));
+
     extractAirportAction->setToolTip(
-        QStringLiteral("Lit un fichier mondial nav1.txt, extrait toutes les données rattachées à un aéroport "
-                       "et crée (ou remplace) un projet SQLite dédié avec elles"));
+        QStringLiteral("Lit un fichier mondial nav1.txt, extrait toutes les données rattachées à un "
+                       "aéroport et crée (ou remplace) un projet SQLite dédié avec elles"));
     mainMenu->addSeparator();
 
 
@@ -164,7 +169,8 @@ MainWindow::MainWindow(QWidget *parent)
     mReloadWorldAction->setEnabled(false);
 
     mExportAction = mainMenu->addAction(QStringLiteral(" Exporter les fichiers .txt"));
-    mExportAction->setToolTip(QStringLiteral("Écrit les 15 fichiers _Xxx.txt (Point, NAV, LEG, ...) dans le dossier de l'application"));
+    mExportAction->setToolTip(QStringLiteral("Écrit les 15 fichiers _Xxx.txt (Point, NAV, LEG, ...) "
+                                             "dans le dossier de l'application"));
     mExportAction->setEnabled(false);
     mainMenu->addSeparator();
 
@@ -176,14 +182,20 @@ MainWindow::MainWindow(QWidget *parent)
 
     auto* decodeWorldAction = mainMenu->addAction(QStringLiteral(" Décoder 'nav1.db' -> 'nav1.txt'"));
     mDecodeWorldAction = decodeWorldAction;
+
     decodeWorldAction->setToolTip(
-        QStringLiteral("Décode nav1.db en nav1.txt (dossier de l'appli), puis recharge ce fichier pour aligner les id du projet"));
+        QStringLiteral("Décode nav1.db en nav1.txt (dossier de l'appli), "
+                       "puis recharge ce fichier pour aligner les id du projet"));
+
     decodeWorldAction->setEnabled(false);
 
     auto* integrateWorldAction = mainMenu->addAction(QStringLiteral(" Compléter 'nav1.txt' et réencoder 'nav1.db'"));
     mIntegrateWorldAction = integrateWorldAction;
+
     integrateWorldAction->setToolTip(
-        QStringLiteral("Intègre les 15 fichiers _Xxx.txt du projet dans le nav1.txt, réencode en nav1.db et copie le tout à la destination X-Plane"));
+        QStringLiteral("Intègre les 15 fichiers _Xxx.txt du projet dans le nav1.txt, "
+                       "réencode en nav1.db et copie le tout à la destination X-Plane"));
+
     integrateWorldAction->setEnabled(false);
 
 
@@ -219,15 +231,36 @@ MainWindow::MainWindow(QWidget *parent)
     // l'un de l'autre au lieu de les garder collés.
     auto* convertersContainer = new QWidget(this);
     auto* convertersLayout = new QHBoxLayout(convertersContainer);
+
     convertersLayout->setContentsMargins(0, 0, 0, 0);
     convertersLayout->setSpacing(6);
-    convertersLayout->addWidget(new UnitConverterWidget(QStringLiteral("ft"), QStringLiteral("m"), 1.0 / 3.28084, convertersContainer));
+
+    convertersLayout->addWidget(
+            new UnitConverterWidget(
+                    QStringLiteral("ft"),
+                    QStringLiteral("m"),
+                    1.0 / 3.28084,
+                    convertersContainer
+            )
+    );
+
     auto* convertersSeparator = new QFrame(convertersContainer);
+
     convertersSeparator->setFrameShape(QFrame::VLine);
     convertersSeparator->setFrameShadow(QFrame::Sunken);
     convertersLayout->addWidget(convertersSeparator);
-    convertersLayout->addWidget(new UnitConverterWidget(QStringLiteral("NM"), QStringLiteral("m"), 1852.0, convertersContainer));
+
+    convertersLayout->addWidget(
+        new UnitConverterWidget(
+            QStringLiteral("NM"),
+            QStringLiteral("m"),
+            1852.0,
+            convertersContainer
+        )
+    );
+
     convertersContainer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+
     toolBar->addWidget(convertersContainer);
 
 
@@ -244,9 +277,11 @@ MainWindow::MainWindow(QWidget *parent)
     // ------------------------------------------------------------------------------------------------------
     // MENU AIDE
     auto* helpMenu = menuBar()->addMenu(QStringLiteral("Aide"));
+
     // À propos
     QAction* aboutAction = helpMenu->addAction(QStringLiteral("À propos ..."));
     connect(aboutAction,            &QAction::triggered, this, &MainWindow::onAbout);
+
     // Objectifs
     QAction* documentationAction = helpMenu->addAction(QStringLiteral("Objectifs ..."));
     connect(documentationAction,    &QAction::triggered, this, &MainWindow::onDocumentation);
@@ -260,7 +295,7 @@ MainWindow::MainWindow(QWidget *parent)
     // (aucune résolution d'ident), les 4 autres si.
     auto* tabs = new QTabWidget(this);
 
-    // --- Point ---
+    // POINT ---
     mPointModel = new GenericTableModel(
         orderFnFor(&mProject.points()),
         {
@@ -345,7 +380,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
 
-    // --- Waypoint ---
+    // WAYPOINT ---
     mWaypointModel = new GenericTableModel(
         orderFnFor(&mProject.waypoints()),
         {
@@ -536,19 +571,67 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(mAirportEditor, &AirportEditorWidget::valueEdited, this, &MainWindow::onAirportEdited);
 
-    // --- Runway ---
-    mRunwayModel = new GenericTableModel(orderFnFor(&mProject.runways()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Airport"), &mProject.runways(), &UserRunway::airportIdent),
-        textColumn(QStringLiteral("Ident Threshold"), &mProject.runways(), &UserRunway::thresholdIdent),
-        doubleColumn(QStringLiteral("Élévation (m)"), &mProject.runways(), &UserRunway::elevationInMeters, 6),
-        doubleColumn(QStringLiteral("Gradient"), &mProject.runways(), &UserRunway::gradient, 6),
-        doubleColumn(QStringLiteral("Cap"), &mProject.runways(), &UserRunway::course, 6),
-        doubleColumn(QStringLiteral("Longueur (m)"), &mProject.runways(), &UserRunway::lengthInMeters, 6),
-        doubleColumn(QStringLiteral("Décalage seuil"), &mProject.runways(), &UserRunway::displacedInMeters, 6),
-        doubleColumn(QStringLiteral("Stopway"), &mProject.runways(), &UserRunway::stopwayInMeters, 6),
-        doubleColumn(QStringLiteral("Survol seuil"), &mProject.runways(), &UserRunway::crossInMeters, 6),
-    }, this);
+    // RUNWAY ---
+    mRunwayModel = new GenericTableModel(
+        orderFnFor(&mProject.runways()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Airport"),
+                &mProject.runways(),
+                &UserRunway::airportIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident Threshold"),
+                &mProject.runways(),
+                &UserRunway::thresholdIdent
+            ),
+            doubleColumn(
+                QStringLiteral("Élévation (m)"),
+                &mProject.runways(),
+                &UserRunway::elevationInMeters,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Gradient"),
+                &mProject.runways(),
+                &UserRunway::gradient,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Cap"),
+                &mProject.runways(),
+                &UserRunway::course,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Longueur (m)"),
+                &mProject.runways(),
+                &UserRunway::lengthInMeters,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Décalage seuil"),
+                &mProject.runways(),
+                &UserRunway::displacedInMeters,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Stopway"),
+                &mProject.runways(),
+                &UserRunway::stopwayInMeters,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Survol seuil"),
+                &mProject.runways(),
+                &UserRunway::crossInMeters,
+                6
+            ),
+        },
+        this
+    );
+
     mRunwayTable = new QTableView(this);
     mRunwayProxy = new QSortFilterProxyModel(this);
     mRunwayProxy->setSourceModel(mRunwayModel);
@@ -560,73 +643,224 @@ MainWindow::MainWindow(QWidget *parent)
     mRunwayTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mRunwayEditor = new RunwayEditorWidget(this);
     mRunwayEditor->setEnabled(false);
+
     auto* newRunwayButton = new QPushButton(QStringLiteral("Nouvelle piste"), this);
     auto* deleteRunwayButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newRunwayButton, deleteRunwayButton, mRunwayTable, mRunwayEditor), QStringLiteral("Runway"));
-    connect(mRunwayTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onRunwaySelectionChanged);
-    connect(newRunwayButton, &QPushButton::clicked, this, &MainWindow::onNewRunway);
-    connect(deleteRunwayButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mRunwayTable, mRunwayModel, mRunwayProxy, mRunwayEditor,
-                         [this](qint32 rawId) { return mProject.runways().remove(RunwayId(rawId)); },
-                         [this]() { mCurrentRunwayId = RunwayId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.runways();
-                             if (!table.order().isEmpty())
+
+    tabs->addTab(
+        buildTabLayout(
+            newRunwayButton,
+            deleteRunwayButton,
+            mRunwayTable,
+            mRunwayEditor
+        ),
+        QStringLiteral("Runway")
+    );
+
+    connect(
+        mRunwayTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onRunwaySelectionChanged
+    );
+    connect(
+        newRunwayButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewRunway
+    );
+
+    connect(
+        deleteRunwayButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mRunwayTable,
+                mRunwayModel,
+                mRunwayProxy,
+                mRunwayEditor,
+                [this](qint32 rawId) { return mProject.runways().remove(RunwayId(rawId)); },
+                [this]() { mCurrentRunwayId = RunwayId::invalid(); },
+                [this]() {
+                            auto& table = mProject.runways();
+                            if (!table.order().isEmpty())
                                  table.renumberFrom(table.order().first().value());
-                         });
-    });
+                }
+            );
+        }
+    );
+
     connect(mRunwayEditor, &RunwayEditorWidget::valueEdited, this, &MainWindow::onRunwayEdited);
 
-    // --- Navaid ---
-    mNavaidModel = new GenericTableModel(orderFnFor(&mProject.navaids()), {
-        idColumn(),
-        textColumn(QStringLiteral("Type"), &mProject.navaids(), &UserNavaid::type),
-        textColumn(QStringLiteral("Ident Point"), &mProject.navaids(), &UserNavaid::pointIdent),
-        textColumn(QStringLiteral("Navaid associé"), &mProject.navaids(), &UserNavaid::associatedNavaidIdent),
-        doubleColumn(QStringLiteral("Élévation (m)"), &mProject.navaids(), &UserNavaid::elevationInMeters, 6),
-        doubleColumn(QStringLiteral("Déc. magn."), &mProject.navaids(), &UserNavaid::declination, 6),
-        uintColumn(QStringLiteral("Fréquence"), &mProject.navaids(), &UserNavaid::frequencyMHzTimes100),
-        textColumn(QStringLiteral("Cat"), &mProject.navaids(), &UserNavaid::category),
-        doubleColumn(QStringLiteral("Cap"), &mProject.navaids(), &UserNavaid::course, 6),
-        doubleColumn(QStringLiteral("Angle"), &mProject.navaids(), &UserNavaid::angle, 6),
-        textColumn(QStringLiteral("Ident Runway"), &mProject.navaids(), &UserNavaid::runwayIdent),
-    }, this);
+
+    // NAVAID ---
+    mNavaidModel = new GenericTableModel(
+        orderFnFor(&mProject.navaids()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Type"),
+                &mProject.navaids(),
+                &UserNavaid::type
+            ),
+            textColumn(
+                QStringLiteral("Ident Point"),
+                &mProject.navaids(),
+                &UserNavaid::pointIdent
+            ),
+            textColumn(
+                QStringLiteral("Navaid associé"),
+                &mProject.navaids(),
+                &UserNavaid::associatedNavaidIdent
+            ),
+            doubleColumn(
+                QStringLiteral("Élévation (m)"),
+                &mProject.navaids(),
+                &UserNavaid::elevationInMeters,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Déc. magn."),
+                &mProject.navaids(),
+                &UserNavaid::declination,
+                6
+            ),
+            uintColumn(
+                QStringLiteral("Fréquence"),
+                &mProject.navaids(),
+                &UserNavaid::frequencyMHzTimes100
+            ),
+            textColumn(
+                QStringLiteral("Cat"),
+                &mProject.navaids(),
+                &UserNavaid::category
+            ),
+            doubleColumn(
+                QStringLiteral("Cap"),
+                &mProject.navaids(),
+                &UserNavaid::course,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Angle"),
+                &mProject.navaids(),
+                &UserNavaid::angle,
+                6
+            ),
+            textColumn(
+                QStringLiteral("Ident Runway"),
+                &mProject.navaids(),
+                &UserNavaid::runwayIdent
+            ),
+        },
+        this
+    );
+
     mNavaidTable = new QTableView(this);
+
     mNavaidProxy = new QSortFilterProxyModel(this);
     mNavaidProxy->setSourceModel(mNavaidModel);
+
     mNavaidTable->setModel(mNavaidProxy);
     mNavaidTable->setSortingEnabled(true);
     mNavaidTable->sortByColumn(1, Qt::AscendingOrder);
     mNavaidTable->horizontalHeader()->setStretchLastSection(true);
     mNavaidTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     mNavaidTable->setSelectionMode(QAbstractItemView::SingleSelection);
+
     mNavaidEditor = new NavaidEditorWidget(this);
     mNavaidEditor->setEnabled(false);
+
     auto* newNavaidButton = new QPushButton(QStringLiteral("Nouveau navaid"), this);
     auto* deleteNavaidButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newNavaidButton, deleteNavaidButton, mNavaidTable, mNavaidEditor), QStringLiteral("Navaid"));
-    connect(mNavaidTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onNavaidSelectionChanged);
-    connect(newNavaidButton, &QPushButton::clicked, this, &MainWindow::onNewNavaid);
-    connect(deleteNavaidButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mNavaidTable, mNavaidModel, mNavaidProxy, mNavaidEditor,
-                         [this](qint32 rawId) { return mProject.navaids().remove(NavaidId(rawId)); },
-                         [this]() { mCurrentNavaidId = NavaidId::invalid(); },
-                         [this]() {
+
+    tabs->addTab(
+        buildTabLayout(
+            newNavaidButton,
+            deleteNavaidButton,
+            mNavaidTable,
+            mNavaidEditor
+        ),
+        QStringLiteral("Navaid")
+    );
+
+    connect(mNavaidTable->selectionModel(),
+            &QItemSelectionModel::currentRowChanged,
+            this,
+            &MainWindow::onNavaidSelectionChanged
+    );
+
+    connect(
+        newNavaidButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewNavaid
+    );
+
+    connect(
+        deleteNavaidButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mNavaidTable,
+                mNavaidModel,
+                mNavaidProxy,
+                mNavaidEditor,
+                [this](qint32 rawId) {
+                    return mProject.navaids().remove(NavaidId(rawId));
+                },
+                [this]() {
+                    mCurrentNavaidId = NavaidId::invalid();
+                },
+                [this]() {
                              auto& table = mProject.navaids();
                              if (!table.order().isEmpty())
                                  table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mNavaidEditor, &NavaidEditorWidget::valueEdited, this, &MainWindow::onNavaidEdited);
+                }
+            );
+        }
+    );
 
-    // --- LegSequence ---
-    mLegSequenceModel = new GenericTableModel(orderFnFor(&mProject.legSequences()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident"), &mProject.legSequences(), &UserLegSequence::ident),
-        textColumn(QStringLiteral("ILS/RNAV"), &mProject.legSequences(), &UserLegSequence::ilsOrRnav),
-        textColumn(QStringLiteral("Type procédure"), &mProject.legSequences(), &UserLegSequence::procedureKind),
-        doubleColumn(QStringLiteral("Alt. transition (ft)"), &mProject.legSequences(), &UserLegSequence::altitudeLevelTransInFeet, 6),
-    }, this);
+    connect(
+        mNavaidEditor,
+        &NavaidEditorWidget::valueEdited,
+        this,
+        &MainWindow::onNavaidEdited
+    );
+
+
+    // LEGSEQUENCE ---
+    mLegSequenceModel = new GenericTableModel(
+        orderFnFor(&mProject.legSequences()),
+        {
+            idColumn(),
+            textColumn(
+                    QStringLiteral("Ident"),
+                    &mProject.legSequences(),
+                    &UserLegSequence::ident
+            ),
+            textColumn(
+                    QStringLiteral("ILS/RNAV"),
+                    &mProject.legSequences(),
+                    &UserLegSequence::ilsOrRnav
+            ),
+            textColumn(
+                    QStringLiteral("Type procédure"),
+                    &mProject.legSequences(),
+                    &UserLegSequence::procedureKind
+            ),
+            doubleColumn(
+                    QStringLiteral("Alt. transition (ft)"),
+                    &mProject.legSequences(),
+                    &UserLegSequence::altitudeLevelTransInFeet,
+                    6
+            ),
+        },
+        this
+    );
+
     mLegSequenceTable = new QTableView(this);
     mLegSequenceProxy = new QSortFilterProxyModel(this);
     mLegSequenceProxy->setSourceModel(mLegSequenceModel);
@@ -638,79 +872,253 @@ MainWindow::MainWindow(QWidget *parent)
     mLegSequenceTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mLegSequenceEditor = new LegSequenceEditorWidget(this);
     mLegSequenceEditor->setEnabled(false);
+
     auto* newLegSequenceButton = new QPushButton(QStringLiteral("Nouvelle séquence"), this);
     auto* deleteLegSequenceButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newLegSequenceButton, deleteLegSequenceButton, mLegSequenceTable, mLegSequenceEditor),
-                 QStringLiteral("LegSequence"));
-    connect(mLegSequenceTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onLegSequenceSelectionChanged);
-    connect(newLegSequenceButton, &QPushButton::clicked, this, &MainWindow::onNewLegSequence);
-    connect(deleteLegSequenceButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mLegSequenceTable, mLegSequenceModel, mLegSequenceProxy, mLegSequenceEditor,
-                         [this](qint32 rawId) { return mProject.legSequences().remove(LegSequenceId(rawId)); },
-                         [this]() { mCurrentLegSequenceId = LegSequenceId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.legSequences();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mLegSequenceEditor, &LegSequenceEditorWidget::valueEdited, this, &MainWindow::onLegSequenceEdited);
 
-    // --- Leg ---
-    mLegModel = new GenericTableModel(orderFnFor(&mProject.legs()), {
-        idColumn(),
-        textColumn(QStringLiteral("Code path"), &mProject.legs(), &UserLeg::codePath),
-        textColumn(QStringLiteral("Ident séquence"), &mProject.legs(), &UserLeg::legSequenceIdent),
-        textColumn(QStringLiteral("Ident point"), &mProject.legs(), &UserLeg::pointIdent),
-        textColumn(QStringLiteral("Description WP"), &mProject.legs(), &UserLeg::wpDescription),
-        doubleColumn(QStringLiteral("Cap"), &mProject.legs(), &UserLeg::course, 6),
-        doubleColumn(QStringLiteral("Distance (m)"), &mProject.legs(), &UserLeg::distanceInMeters, 6),
-        textColumn(QStringLiteral("Ident navaid"), &mProject.legs(), &UserLeg::navaidIdent),
-        doubleColumn(QStringLiteral("Cap navaid"), &mProject.legs(), &UserLeg::navaidCourse, 6),
-        doubleColumn(QStringLiteral("Distance navaid (m)"), &mProject.legs(), &UserLeg::navaidDistanceInMeters, 6),
-        doubleColumn(QStringLiteral("Alt. min (ft)"), &mProject.legs(), &UserLeg::altitudeLimitMinInFeet, 6),
-        doubleColumn(QStringLiteral("Alt. max (ft)"), &mProject.legs(), &UserLeg::altitudeLimitMaxInFeet, 6),
-        doubleColumn(QStringLiteral("Lim. vitesse air"), &mProject.legs(), &UserLeg::airSpeedLimit, 6),
-        doubleColumn(QStringLiteral("Path"), &mProject.legs(), &UserLeg::path, 6),
-        intColumn(QStringLiteral("Sens virage"), &mProject.legs(), &UserLeg::turnDir),
-        doubleColumn(QStringLiteral("RNP (m)"), &mProject.legs(), &UserLeg::rnpInMeters, 6),
-    }, this);
+    tabs->addTab(
+        buildTabLayout(
+            newLegSequenceButton,
+            deleteLegSequenceButton,
+            mLegSequenceTable,
+            mLegSequenceEditor
+        ),
+        QStringLiteral("LegSequence")
+    );
+
+    connect(
+        mLegSequenceTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onLegSequenceSelectionChanged
+    );
+
+    connect(
+        newLegSequenceButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewLegSequence
+    );
+
+    connect(
+        deleteLegSequenceButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mLegSequenceTable,
+                mLegSequenceModel,
+                mLegSequenceProxy,
+                mLegSequenceEditor,
+                [this](qint32 rawId) { return mProject.legSequences().remove(LegSequenceId(rawId)); },
+                [this]() { mCurrentLegSequenceId = LegSequenceId::invalid(); },
+                [this]() {
+                            auto& table = mProject.legSequences();
+                            if (!table.order().isEmpty())
+                                 table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
+    connect(
+        mLegSequenceEditor,
+        &LegSequenceEditorWidget::valueEdited,
+        this,
+        &MainWindow::onLegSequenceEdited
+    );
+
+
+    // LEG ---
+    mLegModel = new GenericTableModel(
+        orderFnFor(&mProject.legs()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Code path"),
+                &mProject.legs(),
+                &UserLeg::codePath
+            ),
+            textColumn(
+                QStringLiteral("Ident séquence"),
+                &mProject.legs(),
+                &UserLeg::legSequenceIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident point"),
+                &mProject.legs(),
+                &UserLeg::pointIdent
+            ),
+            textColumn(
+                QStringLiteral("Description WP"),
+                &mProject.legs(),
+                &UserLeg::wpDescription
+            ),
+            doubleColumn(
+                QStringLiteral("Cap"),
+                &mProject.legs(),
+                &UserLeg::course,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Distance (m)"),
+                &mProject.legs(),
+                &UserLeg::distanceInMeters,
+                6
+            ),
+            textColumn(
+                QStringLiteral("Ident navaid"),
+                &mProject.legs(),
+                &UserLeg::navaidIdent
+            ),
+            doubleColumn(
+                QStringLiteral("Cap navaid"),
+                &mProject.legs(),
+                &UserLeg::navaidCourse,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Distance navaid (m)"),
+                &mProject.legs(),
+                &UserLeg::navaidDistanceInMeters,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Alt. min (ft)"),
+                &mProject.legs(),
+                &UserLeg::altitudeLimitMinInFeet,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Alt. max (ft)"),
+                &mProject.legs(),
+                &UserLeg::altitudeLimitMaxInFeet,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Lim. vitesse air"),
+                &mProject.legs(),
+                &UserLeg::airSpeedLimit,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("Path"),
+                &mProject.legs(),
+                &UserLeg::path,
+                6
+            ),
+            intColumn(
+                QStringLiteral("Sens virage"),
+                &mProject.legs(),
+                &UserLeg::turnDir
+            ),
+            doubleColumn(
+                QStringLiteral("RNP (m)"),
+                &mProject.legs(),
+                &UserLeg::rnpInMeters,
+                6
+            )
+        },
+        this
+    );
+
     mLegTable = new QTableView(this);
+
     mLegProxy = new QSortFilterProxyModel(this);
     mLegProxy->setSourceModel(mLegModel);
+
     mLegTable->setModel(mLegProxy);
     mLegTable->setSortingEnabled(true);
     mLegTable->sortByColumn(1, Qt::AscendingOrder);
     mLegTable->horizontalHeader()->setStretchLastSection(true);
     mLegTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     mLegTable->setSelectionMode(QAbstractItemView::SingleSelection);
+
     mLegEditor = new LegEditorWidget(this);
     mLegEditor->setEnabled(false);
+
     auto* newLegButton = new QPushButton(QStringLiteral("Nouveau leg"), this);
     auto* deleteLegButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newLegButton, deleteLegButton, mLegTable, mLegEditor), QStringLiteral("Leg"));
-    connect(mLegTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onLegSelectionChanged);
-    connect(newLegButton, &QPushButton::clicked, this, &MainWindow::onNewLeg);
-    connect(deleteLegButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mLegTable, mLegModel, mLegProxy, mLegEditor,
-                         [this](qint32 rawId) { return mProject.legs().remove(LegId(rawId)); },
-                         [this]() { mCurrentLegId = LegId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.legs();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mLegEditor, &LegEditorWidget::valueEdited, this, &MainWindow::onLegEdited);
 
-    // --- Approach ---
-    mApproachModel = new GenericTableModel(orderFnFor(&mProject.approaches()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Runway"), &mProject.approaches(), &UserApproach::runwayIdent),
-        textColumn(QStringLiteral("Ident séquence"), &mProject.approaches(), &UserApproach::legSequenceIdent),
-        doubleColumn(QStringLiteral("DH (ft)"), &mProject.approaches(), &UserApproach::decisionHeightInFeet, 6),
-        doubleColumn(QStringLiteral("MDA (ft)"), &mProject.approaches(), &UserApproach::minimumDescentInFeet, 6),
-    }, this);
+    tabs->addTab(buildTabLayout(newLegButton, deleteLegButton, mLegTable, mLegEditor), QStringLiteral("Leg"));
+
+    connect(
+        mLegTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onLegSelectionChanged
+    );
+
+    connect(newLegButton,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::onNewLeg
+    );
+
+    connect(
+        deleteLegButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mLegTable,
+                mLegModel,
+                mLegProxy,
+                mLegEditor,
+                [this](qint32 rawId) {
+                    return mProject.legs().remove(LegId(rawId));
+                },
+                [this]() {
+                    mCurrentLegId = LegId::invalid();
+                },
+                [this]() {
+                    auto& table = mProject.legs();
+                    if (!table.order().isEmpty())
+                            table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
+    connect(
+        mLegEditor,
+        &LegEditorWidget::valueEdited,
+        this,
+        &MainWindow::onLegEdited
+    );
+
+
+    // APPROACH ---
+    mApproachModel = new GenericTableModel(
+        orderFnFor(&mProject.approaches()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Runway"),
+                &mProject.approaches(),
+                &UserApproach::runwayIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident séquence"),
+                &mProject.approaches(),
+                &UserApproach::legSequenceIdent
+            ),
+            doubleColumn(
+                QStringLiteral("DH (ft)"),
+                &mProject.approaches(),
+                &UserApproach::decisionHeightInFeet,
+                6
+            ),
+            doubleColumn(
+                QStringLiteral("MDA (ft)"),
+                &mProject.approaches(),
+                &UserApproach::minimumDescentInFeet,
+                6
+            ),
+        },
+        this
+    );
+
     mApproachTable = new QTableView(this);
     mApproachProxy = new QSortFilterProxyModel(this);
     mApproachProxy->setSourceModel(mApproachModel);
@@ -722,29 +1130,86 @@ MainWindow::MainWindow(QWidget *parent)
     mApproachTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mApproachEditor = new ApproachEditorWidget(this);
     mApproachEditor->setEnabled(false);
+
     auto* newApproachButton = new QPushButton(QStringLiteral("Nouvelle approche"), this);
     auto* deleteApproachButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newApproachButton, deleteApproachButton, mApproachTable, mApproachEditor), QStringLiteral("Approach"));
-    connect(mApproachTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this, &MainWindow::onApproachSelectionChanged);
-    connect(newApproachButton, &QPushButton::clicked, this, &MainWindow::onNewApproach);
-    connect(deleteApproachButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mApproachTable, mApproachModel, mApproachProxy, mApproachEditor,
-                         [this](qint32 rawId) { return mProject.approaches().remove(ApproachId(rawId)); },
-                         [this]() { mCurrentApproachId = ApproachId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.approaches();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mApproachEditor, &ApproachEditorWidget::valueEdited, this, &MainWindow::onApproachEdited);
 
-    // --- ApproachTransition ---
-    mApproachTransitionModel = new GenericTableModel(orderFnFor(&mProject.approachTransitions()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Approach"), &mProject.approachTransitions(), &UserApproachTransition::approachIdent),
-        textColumn(QStringLiteral("Ident séquence"), &mProject.approachTransitions(), &UserApproachTransition::legSequenceIdent),
-    }, this);
+    tabs->addTab(
+        buildTabLayout(
+            newApproachButton,
+            deleteApproachButton,
+            mApproachTable,
+            mApproachEditor
+        ),
+        QStringLiteral("Approach")
+    );
+
+    connect(
+        mApproachTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onApproachSelectionChanged
+    );
+
+    connect(
+        newApproachButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewApproach
+    );
+
+    connect(
+        deleteApproachButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mApproachTable,
+                mApproachModel,
+                mApproachProxy,
+                mApproachEditor,
+                [this](qint32 rawId) {
+                    return mProject.approaches().remove(ApproachId(rawId));
+                },
+                [this]() {
+                    mCurrentApproachId = ApproachId::invalid();
+                },
+                [this]() {
+                    auto& table = mProject.approaches();
+                    if (!table.order().isEmpty())
+                            table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
+    connect(
+        mApproachEditor,
+        &ApproachEditorWidget::valueEdited,
+        this,
+        &MainWindow::onApproachEdited
+    );
+
+
+    // APPROACHTRANSITION ---
+    mApproachTransitionModel = new GenericTableModel(
+        orderFnFor(&mProject.approachTransitions()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Approach"),
+                &mProject.approachTransitions(),
+                &UserApproachTransition::approachIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident séquence"),
+                &mProject.approachTransitions(),
+                &UserApproachTransition::legSequenceIdent
+            ),
+        },
+        this
+    );
+
     mApproachTransitionTable = new QTableView(this);
     mApproachTransitionProxy = new QSortFilterProxyModel(this);
     mApproachTransitionProxy->setSourceModel(mApproachTransitionModel);
@@ -756,31 +1221,86 @@ MainWindow::MainWindow(QWidget *parent)
     mApproachTransitionTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mApproachTransitionEditor = new ApproachTransitionEditorWidget(this);
     mApproachTransitionEditor->setEnabled(false);
+
     auto* newApproachTransitionButton = new QPushButton(QStringLiteral("Nouvelle transition"), this);
     auto* deleteApproachTransitionButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newApproachTransitionButton, deleteApproachTransitionButton, mApproachTransitionTable, mApproachTransitionEditor),
-                 QStringLiteral("ApproachTransition"));
-    connect(mApproachTransitionTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
-            &MainWindow::onApproachTransitionSelectionChanged);
-    connect(newApproachTransitionButton, &QPushButton::clicked, this, &MainWindow::onNewApproachTransition);
-    connect(deleteApproachTransitionButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mApproachTransitionTable, mApproachTransitionModel, mApproachTransitionProxy, mApproachTransitionEditor,
-                         [this](qint32 rawId) { return mProject.approachTransitions().remove(ApproachTransitionId(rawId)); },
-                         [this]() { mCurrentApproachTransitionId = ApproachTransitionId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.approachTransitions();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mApproachTransitionEditor, &ApproachTransitionEditorWidget::valueEdited, this, &MainWindow::onApproachTransitionEdited);
 
-    // --- Procedure SID ---
-    mSidProcedureModel = new GenericTableModel(orderFnFor(&mProject.sidProcedures()), {
-        idColumn(),
-        textColumn(QStringLiteral("Ident Airport"), &mProject.sidProcedures(), &UserProcedure::airportIdent),
-        textColumn(QStringLiteral("Ident séquence"), &mProject.sidProcedures(), &UserProcedure::legSequenceIdent),
-    }, this);
+    tabs->addTab(
+        buildTabLayout(
+            newApproachTransitionButton,
+            deleteApproachTransitionButton,
+            mApproachTransitionTable,
+            mApproachTransitionEditor
+        ),
+        QStringLiteral("ApproachTransition")
+    );
+
+    connect(
+        mApproachTransitionTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onApproachTransitionSelectionChanged
+    );
+
+    connect(
+        newApproachTransitionButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewApproachTransition
+    );
+
+    connect(
+        deleteApproachTransitionButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mApproachTransitionTable,
+                mApproachTransitionModel,
+                mApproachTransitionProxy,
+                mApproachTransitionEditor,
+                [this](qint32 rawId) {
+                    return mProject.approachTransitions().remove(ApproachTransitionId(rawId));
+                },
+                [this]() {
+                    mCurrentApproachTransitionId = ApproachTransitionId::invalid();
+                },
+                [this]() {
+                    auto& table = mProject.approachTransitions();
+                    if (!table.order().isEmpty())
+                            table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
+    connect(
+        mApproachTransitionEditor,
+        &ApproachTransitionEditorWidget::valueEdited,
+        this,
+        &MainWindow::onApproachTransitionEdited
+    );
+
+
+    // PROCEDURE SID ---
+    mSidProcedureModel = new GenericTableModel(
+        orderFnFor(&mProject.sidProcedures()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Airport"),
+                &mProject.sidProcedures(),
+                &UserProcedure::airportIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident séquence"),
+                &mProject.sidProcedures(),
+                &UserProcedure::legSequenceIdent
+            )
+        },
+        this
+    );
+
     mSidProcedureTable = new QTableView(this);
     mSidProcedureProxy = new QSortFilterProxyModel(this);
     mSidProcedureProxy->setSourceModel(mSidProcedureModel);
@@ -792,26 +1312,68 @@ MainWindow::MainWindow(QWidget *parent)
     mSidProcedureTable->setSelectionMode(QAbstractItemView::SingleSelection);
     mSidProcedureEditor = new ProcedureEditorWidget(this);
     mSidProcedureEditor->setEnabled(false);
+
     auto* newSidProcedureButton = new QPushButton(QStringLiteral("Nouvelle SID"), this);
     auto* deleteSidProcedureButton = new QPushButton(QStringLiteral("Supprimer"), this);
-    tabs->addTab(buildTabLayout(newSidProcedureButton, deleteSidProcedureButton, mSidProcedureTable, mSidProcedureEditor),
-                 QStringLiteral("Procedure SID"));
-    connect(mSidProcedureTable->selectionModel(), &QItemSelectionModel::currentRowChanged, this,
-            &MainWindow::onSidProcedureSelectionChanged);
-    connect(newSidProcedureButton, &QPushButton::clicked, this, &MainWindow::onNewSidProcedure);
-    connect(deleteSidProcedureButton, &QPushButton::clicked, this, [this]() {
-        deleteCurrentRow(mSidProcedureTable, mSidProcedureModel, mSidProcedureProxy, mSidProcedureEditor,
-                         [this](qint32 rawId) { return mProject.sidProcedures().remove(ProcedureId(rawId)); },
-                         [this]() { mCurrentSidProcedureId = ProcedureId::invalid(); },
-                         [this]() {
-                             auto& table = mProject.sidProcedures();
-                             if (!table.order().isEmpty())
-                                 table.renumberFrom(table.order().first().value());
-                         });
-    });
-    connect(mSidProcedureEditor, &ProcedureEditorWidget::valueEdited, this, &MainWindow::onSidProcedureEdited);
 
-    // --- Procedure STAR ---
+    tabs->addTab(
+        buildTabLayout(
+            newSidProcedureButton,
+            deleteSidProcedureButton,
+            mSidProcedureTable,
+            mSidProcedureEditor
+        ),
+        QStringLiteral("Procedure SID")
+    );
+
+    connect(
+        mSidProcedureTable->selectionModel(),
+        &QItemSelectionModel::currentRowChanged,
+        this,
+        &MainWindow::onSidProcedureSelectionChanged
+    );
+
+    connect(
+        newSidProcedureButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewSidProcedure
+    );
+
+    connect(
+        deleteSidProcedureButton,
+        &QPushButton::clicked,
+        this,
+        [this]() {
+            deleteCurrentRow(
+                mSidProcedureTable,
+                mSidProcedureModel,
+                mSidProcedureProxy,
+                mSidProcedureEditor,
+                [this](qint32 rawId) {
+                    return mProject.sidProcedures().remove(ProcedureId(rawId));
+                },
+                [this]() {
+                    mCurrentSidProcedureId = ProcedureId::invalid();
+                },
+                [this]() {
+                    auto& table = mProject.sidProcedures();
+                    if (!table.order().isEmpty())
+                            table.renumberFrom(table.order().first().value());
+                }
+            );
+        }
+    );
+
+    connect(
+        mSidProcedureEditor,
+        &ProcedureEditorWidget::valueEdited,
+        this,
+        &MainWindow::onSidProcedureEdited
+    );
+
+
+    // PROCEDURE STAR ---
     mStarProcedureModel = new GenericTableModel(
         orderFnFor(&mProject.starProcedures()), {
             idColumn(),
@@ -861,10 +1423,11 @@ MainWindow::MainWindow(QWidget *parent)
         &MainWindow::onStarProcedureSelectionChanged
     );
 
-    connect(newStarProcedureButton,
-            &QPushButton::clicked,
-            this,
-            &MainWindow::onNewStarProcedure
+    connect(
+        newStarProcedureButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewStarProcedure
     );
 
     connect(
@@ -896,23 +1459,23 @@ MainWindow::MainWindow(QWidget *parent)
     );
 
     // --- ProcedureTransition SID ---
-    mSidProcedureTransitionModel =
-        new GenericTableModel(
-            orderFnFor(
-                &mProject.sidProcedureTransitions()),
-                {
-                    idColumn(),
-                    textColumn(QStringLiteral("Ident Procedure"),
-                    &mProject.sidProcedureTransitions(),
-                    &UserProcedureTransition::procedureIdent),
-                    textColumn(
-                        QStringLiteral("Ident séquence"),
-                        &mProject.sidProcedureTransitions(),
-                        &UserProcedureTransition::legSequenceIdent
-                    ),
-                },
-                this
-        );
+    mSidProcedureTransitionModel = new GenericTableModel(
+        orderFnFor(&mProject.sidProcedureTransitions()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Procedure"),
+                &mProject.sidProcedureTransitions(),
+                &UserProcedureTransition::procedureIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident séquence"),
+                &mProject.sidProcedureTransitions(),
+                &UserProcedureTransition::legSequenceIdent
+            ),
+        },
+        this
+    );
 
     mSidProcedureTransitionTable = new QTableView(this);
     mSidProcedureTransitionProxy = new QSortFilterProxyModel(this);
@@ -961,22 +1524,22 @@ MainWindow::MainWindow(QWidget *parent)
         this,
         [this]() {
             deleteCurrentRow(
-                    mSidProcedureTransitionTable,
-                    mSidProcedureTransitionModel,
-                    mSidProcedureTransitionProxy,
-                    mSidProcedureTransitionEditor,
-                    [this](qint32 rawId) {
-                        return mProject.sidProcedureTransitions().remove(ProcedureTransitionId(rawId));
-                    },
-                    [this]() {
-                        mCurrentSidProcedureTransitionId = ProcedureTransitionId::invalid();
-                    },
-                    [this]() {
-                        auto& table = mProject.sidProcedureTransitions();
-                        if (!table.order().isEmpty())
-                             table.renumberFrom(table.order().first().value());
-                    }
-                );
+                mSidProcedureTransitionTable,
+                mSidProcedureTransitionModel,
+                mSidProcedureTransitionProxy,
+                mSidProcedureTransitionEditor,
+                [this](qint32 rawId) {
+                    return mProject.sidProcedureTransitions().remove(ProcedureTransitionId(rawId));
+                },
+                [this]() {
+                    mCurrentSidProcedureTransitionId = ProcedureTransitionId::invalid();
+                },
+                [this]() {
+                    auto& table = mProject.sidProcedureTransitions();
+                    if (!table.order().isEmpty())
+                         table.renumberFrom(table.order().first().value());
+                }
+            );
         }
     );
 
@@ -1036,7 +1599,12 @@ MainWindow::MainWindow(QWidget *parent)
             &MainWindow::onStarProcedureTransitionSelectionChanged
     );
 
-    connect(newStarProcedureTransitionButton, &QPushButton::clicked, this, &MainWindow::onNewStarProcedureTransition);
+    connect(
+        newStarProcedureTransitionButton,
+        &QPushButton::clicked,
+        this,
+        &MainWindow::onNewStarProcedureTransition
+    );
 
     connect(
         deleteStarProcedureTransitionButton,
@@ -1063,33 +1631,37 @@ MainWindow::MainWindow(QWidget *parent)
         }
     );
 
-    connect(mStarProcedureTransitionEditor, &ProcedureTransitionEditorWidget::valueEdited, this,
-            &MainWindow::onStarProcedureTransitionEdited);
+    connect(
+        mStarProcedureTransitionEditor,
+        &ProcedureTransitionEditorWidget::valueEdited,
+        this,
+        &MainWindow::onStarProcedureTransitionEdited
+    );
 
-    // --- RunwayProcedureTransition SID ---
-    mSidRunwayProcedureTransitionModel =
-        new GenericTableModel(
-            orderFnFor(&mProject.sidRunwayProcedureTransitions()),
-            {
-                idColumn(),
-                textColumn(
-                    QStringLiteral("Ident Runway"),
-                    &mProject.sidRunwayProcedureTransitions(),
-                    &UserRunwayProcedureTransition::runwayIdent
-                ),
-                textColumn(
-                    QStringLiteral("Ident Procedure"),
-                    &mProject.sidRunwayProcedureTransitions(),
-                    &UserRunwayProcedureTransition::procedureIdent
-                ),
-                textColumn(
-                    QStringLiteral("Ident séquence"),
-                    &mProject.sidRunwayProcedureTransitions(),
-                    &UserRunwayProcedureTransition::legSequenceIdent
-                ),
-            },
-            this
-        );
+
+    // RUWAY PROCEDURETRANSITION SID ---
+    mSidRunwayProcedureTransitionModel = new GenericTableModel(
+        orderFnFor(&mProject.sidRunwayProcedureTransitions()),
+        {
+            idColumn(),
+            textColumn(
+                QStringLiteral("Ident Runway"),
+                &mProject.sidRunwayProcedureTransitions(),
+                &UserRunwayProcedureTransition::runwayIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident Procedure"),
+                &mProject.sidRunwayProcedureTransitions(),
+                &UserRunwayProcedureTransition::procedureIdent
+            ),
+            textColumn(
+                QStringLiteral("Ident séquence"),
+                &mProject.sidRunwayProcedureTransitions(),
+                &UserRunwayProcedureTransition::legSequenceIdent
+            ),
+        },
+        this
+    );
 
     mSidRunwayProcedureTransitionTable = new QTableView(this);
     mSidRunwayProcedureTransitionProxy = new QSortFilterProxyModel(this);
@@ -1143,7 +1715,9 @@ MainWindow::MainWindow(QWidget *parent)
                 [this](qint32 rawId) {
                     return mProject.sidRunwayProcedureTransitions().remove(RunwayProcedureTransitionId(rawId));
                 },
-                [this]() { mCurrentSidRunwayProcedureTransitionId = RunwayProcedureTransitionId::invalid(); },
+                [this]() {
+                    mCurrentSidRunwayProcedureTransitionId = RunwayProcedureTransitionId::invalid();
+                },
                 [this]() {
                     auto& table = mProject.sidRunwayProcedureTransitions();
                     if (!table.order().isEmpty())
@@ -1160,7 +1734,8 @@ MainWindow::MainWindow(QWidget *parent)
         &MainWindow::onSidRunwayProcedureTransitionEdited
     );
 
-    // --- RunwayProcedureTransition STAR ---
+
+    // RUNWAY PROCEDURE TRANSITION STAR ---
     mStarRunwayProcedureTransitionModel = new GenericTableModel(
         orderFnFor(&mProject.starRunwayProcedureTransitions()), {
             idColumn(),
@@ -1246,8 +1821,12 @@ MainWindow::MainWindow(QWidget *parent)
         }
     );
 
-    connect(mStarRunwayProcedureTransitionEditor, &RunwayProcedureTransitionEditorWidget::valueEdited, this,
-            &MainWindow::onStarRunwayProcedureTransitionEdited);
+    connect(
+        mStarRunwayProcedureTransitionEditor,
+        &RunwayProcedureTransitionEditorWidget::valueEdited,
+        this,
+        &MainWindow::onStarRunwayProcedureTransitionEdited
+    );
 
     setCentralWidget(tabs);
     setWindowTitle(QStringLiteral("FF777 NavStudio — aucun projet ouvert"));

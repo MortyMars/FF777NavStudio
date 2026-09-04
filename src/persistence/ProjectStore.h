@@ -48,9 +48,9 @@ public:
     ProjectStore(ProjectStore&&) = delete;
     ProjectStore& operator=(ProjectStore&&) = delete;
 
-    // Ouvre (ou crée) le fichier SQLite à dbPath et s'assure que le schéma
+    // Ouvre (ou crée) le fichier SQLite à sqlitePath et s'assure que le schéma
     // existe. À appeler une fois avant tout usage des méthodes ci-dessous.
-    bool open(const QString& dbPath, QString* errorMessage = nullptr);
+    bool open(const QString& sqlitePath, QString* errorMessage = nullptr);
 
     QVector<ProjectSummary> listProjects() const;
 
