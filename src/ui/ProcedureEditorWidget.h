@@ -11,9 +11,8 @@
 class QLineEdit;
 class QPlainTextEdit;
 
-// Partagé entre les onglets SID et STAR — la structure est identique, seule
-// la table conteneur diffère (cf. ProcedureKind dans Entities.h, jamais
-// stocké dans l'entité elle-même).
+// Classe utilisée dans les onglets SID et STAR — la structure est identique, seule la table
+// conteneur diffère (cf. ProcedureKind dans Entities.h, jamais stocké dans l'entité elle-même).
 class ProcedureEditorWidget : public QWidget
 {
     Q_OBJECT

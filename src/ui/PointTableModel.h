@@ -4,14 +4,13 @@
 
 #pragma once
 
-// ============================================================================
-// PointTableModel.h
-// QAbstractTableModel au-dessus de model::EntityTable<PointTag, UserPoint> —
-// ne possède aucune donnée, seulement un pointeur vers la table qui vit dans
-// le UserProject du MainWindow. Premier jalon de l'UI : les 10 autres
-// structures suivront le même patron (XxxTableModel), une fois celui-ci
-// éprouvé.
-// ============================================================================
+/* ------------------------------------------------------------------------------------------------
+PointTableModel.h
+QAbstractTableModel au-dessus de 'model::EntityTable<PointTag, UserPoint>'
+Ne possède aucune donnée, seulement un pointeur vers la table qui vit dans le 'UserProject' du
+MainWindow.
+Premier jalon de l'UI : les 10 autres structures suivent le même patron (XxxTableModel).
+------------------------------------------------------------------------------------------------ */
 
 #include "ProjectRepository.h"
 #include "UserEntities.h"

@@ -3,15 +3,14 @@
 
 #pragma once
 
-// ============================================================================
-// PointEditorWidget.h
-// Masque de saisie d'un Point, en deux parties empilées comme demandé :
-// les champs éditables en haut, l'aperçu de la ligne _Point.txt telle
-// qu'elle sera écrite en bas — recalculé à chaque frappe via convertPoint()
-// + NavDataWriter::formatPointLine() (même code que le Writer réel, cf.
-// NavDataWriter.h : jamais deux implémentations du format qui pourraient
-// diverger).
-// ============================================================================
+/* --------------------------------------------------------------------------------------
+PointEditorWidget.h
+Masque de saisie d'un Point, en deux parties empilées : les champs éditables en haut,
+l'aperçu de la ligne _Point.txt telle qu'elle sera écrite en bas — recalculé à chaque
+frappe via convertPoint() + NavDataWriter::formatPointLine() (même code que le Writer réel,
+cf. NavDataWriter.h : jamais deux implémentations du format qui pourraient diverger).
+La construction de ce masque est reproduite pour chacune des structures.
+-------------------------------------------------------------------------------------- */
 
 #include "Entities.h"
 #include "UserEntities.h"

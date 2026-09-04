@@ -11,7 +11,7 @@
 class QLineEdit;
 class QPlainTextEdit;
 
-// Partagé entre les onglets SID et STAR, comme ProcedureEditorWidget.
+// Classe utilisée dans les onglets SID et STAR, comme ProcedureEditorWidget.
 class ProcedureTransitionEditorWidget : public QWidget
 {
     Q_OBJECT

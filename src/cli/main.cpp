@@ -223,9 +223,9 @@ int runTestNavaid()
     // Navaid GS déjà présent, pour exercer la résolution à deux sauts vers
     // un AUTRE navaid ("GS/DME associé").
     Navaid gs;
-    gs.type                  = NavaidTypeFlags(NavaidType::Gs);
-    gs.pointId                = pointGS07;
-    gs.frequencyMHzTimes100   = 10895;
+    gs.type                    = NavaidTypeFlags(NavaidType::Gs);
+    gs.pointId                 = pointGS07;
+    gs.frequencyMHzTimes100    = 10895;
     gs.category                = NavaidCategory::CategoryIII;
     gs.runwayId                = runwayId;
     repo.navaids().add(gs, NavaidId(23035));

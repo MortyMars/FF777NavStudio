@@ -3,15 +3,14 @@
 
 #pragma once
 
-// ============================================================================
-// WaypointEditorWidget.h
-// Masque de saisie d'un Waypoint — un seul champ (l'ident du Point visé).
-// Contrairement à PointEditorWidget, ce widget NE calcule PAS lui-même son
-// aperçu : Waypoint a besoin d'IdentResolver (résolution de pointIdent),
-// donc c'est MainWindow qui régénère le projet et pousse la ligne déjà
-// calculée via setPreviewLine() — cf. le renversement de responsabilité
-// documenté dans mainwindow.cpp.
-// ============================================================================
+/* ------------------------------------------------------------------------------------------------
+WaypointEditorWidget.h
+Masque de saisie d'un Waypoint — un seul champ (l'ident du Point visé).
+Contrairement à PointEditorWidget, ce widget NE calcule PAS lui-même son aperçu : Waypoint a besoin
+d'IdentResolver (résolution de pointIdent), donc c'est MainWindow qui régénère le projet et pousse
+la ligne déjà calculée via setPreviewLine() — cf. le renversement de responsabilité documenté dans
+mainwindow.cpp.
+------------------------------------------------------------------------------------------------ */
 
 #include "Entities.h"
 #include "UserEntities.h"

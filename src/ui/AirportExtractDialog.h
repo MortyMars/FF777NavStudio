@@ -1,24 +1,22 @@
 #pragma once
 
-// ============================================================================
-// AirportExtractDialog.h
-// Boîte de dialogue « Extraire un aéroport (nav1.txt -> projet) ».
-//
-// 1. L'utilisateur choisit un fichier mondial nav1.txt (le même que celui
-//    livré par le FlightFactor B777 pour le pipeline Standard) et le charge
-//    en arrière-plan (NavDataBase) — la liste des aéroports se remplit.
-// 2. Il choisit l'aéroport désiré et l'emplacement du fichier extrait, puis
-//    lance l'extraction : les données rattachées DIRECTEMENT à cet aéroport
-//    (points, navaids, runways, séquences d'approche/SID/STAR, transitions...)
-//    sont recopiées VERBATIM dans un fichier d'extraction.
-// 3. Le projet SQLite est ensuite construit (ExtractedProjectBuilder) et, si
-//    la case est cochée, créé dans la base — le signal projectCreated() relance
-//    alors MainWindow::loadProjectIntoUi().
-//
-// NavDataBase et WorldIndexReader (lecture du "# Count:" du fichier mondial
-// pour amorcer les compteurs de départ) tournent dans des threads QtConcurrent
-// afin que l'interface ne gèle pas sur un fichier de ~200 Mo.
-// ============================================================================
+/* -----------------------------------------------------------------------------------------------------
+AirportExtractDialog.h
+Boîte de dialogue « Extraire un aéroport (nav1.txt -> projet) ».
+
+1. L'utilisateur choisit un fichier mondial nav1.txt (le dernier livré par le FlightFactor B777 pour le
+   pipeline Standard) et le charge en arrière-plan (NavDataBase) — la liste des aéroports se remplit.
+
+2. Il choisit l'aéroport désiré et l'emplacement du fichier extrait, puis lance l'extraction : les données
+   rattachées DIRECTEMENT à cet aéroport (points, navaids, runways, approche/SID/STAR, transitions...)
+   sont recopiées VERBATIM dans un fichier d'extraction.
+
+3. Le projet SQLite est ensuite construit (ExtractedProjectBuilder) et, si la case est cochée, créé dans
+   la base. Le signal projectCreated() relance alors MainWindow::loadProjectIntoUi().
+
+NavDataBase et WorldIndexReader (lecture du "# Count:" du fichier mondial pour amorcer les compteurs de départ)
+tournent dans des threads QtConcurrent afin que l'interface ne gèle pas sur un fichier de ~200 Mo.
+----------------------------------------------------------------------------------------------------- */
 
 #include "NavDataBase.h"     // navstud::extract::NavDataBase + ExtractStats
 #include "ProjectStore.h"    // navstud::persistence::ProjectStore

@@ -168,7 +168,7 @@ MainWindow::MainWindow(QWidget *parent)
         QStringLiteral("Réaligne les id du projet sur un fichier mondial mis à jour (nouvelles \"# Count:\")"));
     mReloadWorldAction->setEnabled(false);
 
-    mExportAction = mainMenu->addAction(QStringLiteral(" Exporter les fichiers .txt"));
+    mExportAction = mainMenu->addAction(QStringLiteral(" Exporter les fichiers .txt du projet"));
     mExportAction->setToolTip(QStringLiteral("Écrit les 15 fichiers _Xxx.txt (Point, NAV, LEG, ...) "
                                              "dans le dossier de l'application"));
     mExportAction->setEnabled(false);
@@ -270,7 +270,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mSaveAction,            &QAction::triggered, this, &MainWindow::onSaveProject);
     connect(mReloadWorldAction,     &QAction::triggered, this, &MainWindow::onReloadWorldFile);
     connect(mExportAction,          &QAction::triggered, this, &MainWindow::onExportFiles);
-    connect(decodeNav1dbAction,      &QAction::triggered, this, &MainWindow::onDecodeNav1dbFile);
+    connect(decodeNav1dbAction,     &QAction::triggered, this, &MainWindow::onDecodeNav1dbFile);
     connect(integrateWorldAction,   &QAction::triggered, this, &MainWindow::onIntegrateWorldFile);
     connect(extractAirportAction,   &QAction::triggered, this, &MainWindow::onExtractAirport);
 

@@ -4,13 +4,12 @@
 
 #pragma once
 
-// ============================================================================
-// UnitConverterWidget.h
-// Convertisseur bidirectionnel simple, ratio pur (value2 = value1 * factor)
-// — aide à la saisie dans le bandeau principal, aucune donnée persistée.
-// Deux champs éditables synchronisés en temps réel : taper dans l'un met à
-// jour l'autre, et réciproquement.
-// ============================================================================
+/* ---------------------------------------------------------------------------------
+UnitConverterWidget.h
+Convertisseur bidirectionnel simple, ratio pur (value2 = value1 * factor) — aide à la
+saisie dans le bandeau principal, aucune donnée n'est enregistrée.
+Deux champs éditables synchro : taper dans l'un met à jour l'autre, et réciproquement.
+--------------------------------------------------------------------------------- */
 
 #include <QWidget>
 

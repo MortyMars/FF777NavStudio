@@ -4,18 +4,17 @@
 
 #pragma once
 
-// ============================================================================
-// GenericTableModel.h
-// QAbstractTableModel générique, piloté par une liste de colonnes (libellé +
-// fonction d'accès par id). Une seule classe pour les 11 structures — chaque
-// XxxEditorWidget/onglet ne fournit que sa liste de colonnes, pas une classe
-// de modèle dédiée.
-//
-// L'id est un qint32 "nu" ici (pas un model::Id<Tag> typé) : le modèle n'a
-// pas besoin de connaître le Tag pour afficher une table, seulement de
-// pouvoir le restituer à l'appelant (MainWindow), qui le re-typera lui-même
-// via model::Id<Tag>(rawId) pour interroger la bonne EntityTable.
-// ============================================================================
+/* ---------------------------------------------------------------------------------
+GenericTableModel.h
+QAbstractTableModel générique, piloté par une liste de colonnes (libellé + fonction
+d'accès par id). Une seule classe pour les 11 structures : chaque XxxEditorWidget/onglet
+ne fournit que sa liste de colonnes, pas une classe de modèle dédiée.
+
+L'id est un qint32 "nu" ici (pas un model::Id<Tag> typé) : le modèle n'a pas besoin
+de connaître le Tag pour afficher une table, seulement de pouvoir le restituer à
+l'appelant (MainWindow), qui le re-typera lui-même via model::Id<Tag>(rawId) pour
+interroger la bonne EntityTable.
+--------------------------------------------------------------------------------- */
 
 #include <QAbstractTableModel>
 #include <QVector>

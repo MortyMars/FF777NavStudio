@@ -4,13 +4,12 @@
 
 #pragma once
 
-// ============================================================================
-// TableColumnHelpers.h
-// Fabriques de GenericTableModel::Column, génériques sur (Tag, Entity) —
-// affichent toujours les champs UserXxx BRUTS (tels que saisis), jamais une
-// valeur résolue/convertie : la table liste ce qui a été tapé, l'aperçu de
-// l'éditeur (lui, résolu via régénération) montre ce que ça donnera.
-// ============================================================================
+/* -----------------------------------------------------------------------------------------------------
+TableColumnHelpers.h
+Fonctions diverses 'inline' créant des 'GenericTableModel::Column', génériques sur (Tag, Entity) qui
+affichent toujours les champs 'UserXxx' BRUTS (tels que saisis), jamais une valeur résolue/convertie :
+la table liste ce qui a été tapé, l'aperçu de l'éditeur (résolu via régénération) montre ce que ça donne.
+----------------------------------------------------------------------------------------------------- */
 
 #include "GenericTableModel.h"
 #include "ProjectRepository.h"
