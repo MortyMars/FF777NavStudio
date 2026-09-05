@@ -106,8 +106,8 @@ class MainWindow : public QMainWindow
         void onNewProject();
         void onOpenProject();
         void onSaveProject();
-        void onReloadWorldFile();
-        void onExportFiles();
+        void onReloadNav1TxtFile();
+        void onExportTxtFiles();
 
         // Menu 'One shot', accédant à cette méthode, désactivé
         void onImportFromTextFiles();
@@ -122,7 +122,7 @@ class MainWindow : public QMainWindow
         void loadProjectIntoUi(qint64 id, const QString& name);
         // Corps du rechargement mondial, factorisé en un seul endroit pour être
         // appelable aussi bien depuis le menu que depuis la chaîne "décoder".
-        bool applyWorldFile(const QString& worldFile);
+        bool applyWorldTxtFile(const QString& worldFile);
 
         // Assemble bouton "Nouveau" + bouton "Supprimer" + table + éditeur dans
         // un splitter — layout commun à tous les onglets, factorisé pour ne pas
@@ -182,8 +182,8 @@ class MainWindow : public QMainWindow
         navstud::persistence::ProjectStore mStore;
         qint64   mCurrentProjectId = -1;
         QAction* mSaveAction = nullptr;
-        QAction* mReloadWorldAction = nullptr;
-        QAction* mExportAction = nullptr;
+        QAction* mReloadNav1TxtAction = nullptr;
+        QAction* mExportTxtAction = nullptr;
         QAction* mDecodeWorldAction = nullptr;
         QAction* mIntegrateWorldAction = nullptr;
 

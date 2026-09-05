@@ -32,7 +32,8 @@ std::function<QVector<qint32>()> orderFnFor(model::EntityTable<Tag, Entity>* tab
 
 inline GenericTableModel::Column idColumn()
 {
-    return GenericTableModel::Column{ QStringLiteral("Id"), [](qint32 rawId) -> QVariant { return rawId; } };
+    //return GenericTableModel::Column{ QStringLiteral("Id"), [](qint32 rawId) -> QVariant { return rawId; } };
+    return GenericTableModel::Column{ QStringLiteral("Index"), [](qint32 rawId) -> QVariant { return rawId; } }; // REVOIR
 }
 
 template <typename Tag, typename Entity>

@@ -163,15 +163,15 @@ MainWindow::MainWindow(QWidget *parent)
     mSaveAction->setToolTip(QStringLiteral("Enregistrer le projet (Ctrl+S)"));
     mSaveAction->setEnabled(false);
 
-    mReloadWorldAction = mainMenu->addAction(QStringLiteral(" Recharger le fichier mondial 'nav1.txt'"));
-    mReloadWorldAction->setToolTip(
+    mReloadNav1TxtAction = mainMenu->addAction(QStringLiteral(" Recharger le fichier mondial 'nav1.txt'"));
+    mReloadNav1TxtAction->setToolTip(
         QStringLiteral("Réaligne les id du projet sur un fichier mondial mis à jour (nouvelles \"# Count:\")"));
-    mReloadWorldAction->setEnabled(false);
+    mReloadNav1TxtAction->setEnabled(false);
 
-    mExportAction = mainMenu->addAction(QStringLiteral(" Exporter les fichiers .txt du projet"));
-    mExportAction->setToolTip(QStringLiteral("Écrit les 15 fichiers _Xxx.txt (Point, NAV, LEG, ...) "
+    mExportTxtAction = mainMenu->addAction(QStringLiteral(" Exporter les fichiers .txt du projet"));
+    mExportTxtAction->setToolTip(QStringLiteral("Écrit les 15 fichiers _Xxx.txt (Point, NAV, LEG, ...) "
                                              "dans le dossier de l'application"));
-    mExportAction->setEnabled(false);
+    mExportTxtAction->setEnabled(false);
     mainMenu->addSeparator();
 
 
@@ -268,8 +268,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(newProjectAction,       &QAction::triggered, this, &MainWindow::onNewProject);
     connect(openProjectAction,      &QAction::triggered, this, &MainWindow::onOpenProject);
     connect(mSaveAction,            &QAction::triggered, this, &MainWindow::onSaveProject);
-    connect(mReloadWorldAction,     &QAction::triggered, this, &MainWindow::onReloadWorldFile);
-    connect(mExportAction,          &QAction::triggered, this, &MainWindow::onExportFiles);
+    connect(mReloadNav1TxtAction,   &QAction::triggered, this, &MainWindow::onReloadNav1TxtFile);
+    connect(mExportTxtAction,          &QAction::triggered, this, &MainWindow::onExportTxtFiles);
     connect(decodeNav1dbAction,     &QAction::triggered, this, &MainWindow::onDecodeNav1dbFile);
     connect(integrateWorldAction,   &QAction::triggered, this, &MainWindow::onIntegrateWorldFile);
     connect(extractAirportAction,   &QAction::triggered, this, &MainWindow::onExtractAirport);
@@ -940,7 +940,7 @@ MainWindow::MainWindow(QWidget *parent)
                 &UserLeg::codePath
             ),
             textColumn(
-                QStringLiteral("Ident séquence"),
+                QStringLiteral("Ident LegSequence"),
                 &mProject.legs(),
                 &UserLeg::legSequenceIdent
             ),
@@ -1099,7 +1099,7 @@ MainWindow::MainWindow(QWidget *parent)
                 &UserApproach::runwayIdent
             ),
             textColumn(
-                QStringLiteral("Ident séquence"),
+                QStringLiteral("Ident LegSeq."), // Colonne trop étroite pour le titre complet
                 &mProject.approaches(),
                 &UserApproach::legSequenceIdent
             ),
@@ -1202,7 +1202,7 @@ MainWindow::MainWindow(QWidget *parent)
                 &UserApproachTransition::approachIdent
             ),
             textColumn(
-                QStringLiteral("Ident séquence"),
+                QStringLiteral("Ident LegSequence"),
                 &mProject.approachTransitions(),
                 &UserApproachTransition::legSequenceIdent
             ),
@@ -1293,7 +1293,7 @@ MainWindow::MainWindow(QWidget *parent)
                 &UserProcedure::airportIdent
             ),
             textColumn(
-                QStringLiteral("Ident séquence"),
+                QStringLiteral("Ident LegSequence"),
                 &mProject.sidProcedures(),
                 &UserProcedure::legSequenceIdent
             )
@@ -1383,7 +1383,7 @@ MainWindow::MainWindow(QWidget *parent)
                 &UserProcedure::airportIdent
             ),
             textColumn(
-                QStringLiteral("Ident séquence"),
+                QStringLiteral("Ident LegSequence"),
                 &mProject.starProcedures(),
                 &UserProcedure::legSequenceIdent
             ),
@@ -1469,7 +1469,7 @@ MainWindow::MainWindow(QWidget *parent)
                 &UserProcedureTransition::procedureIdent
             ),
             textColumn(
-                QStringLiteral("Ident séquence"),
+                QStringLiteral("Ident LegSequence"),
                 &mProject.sidProcedureTransitions(),
                 &UserProcedureTransition::legSequenceIdent
             ),
@@ -1560,7 +1560,7 @@ MainWindow::MainWindow(QWidget *parent)
                 &UserProcedureTransition::procedureIdent
             ),
             textColumn(
-                QStringLiteral("Ident séquence"),
+                QStringLiteral("Ident LegSequence"),
                 &mProject.starProcedureTransitions(),
                 &UserProcedureTransition::legSequenceIdent
             ),
@@ -1655,7 +1655,7 @@ MainWindow::MainWindow(QWidget *parent)
                 &UserRunwayProcedureTransition::procedureIdent
             ),
             textColumn(
-                QStringLiteral("Ident séquence"),
+                QStringLiteral("Ident LegSequence"),
                 &mProject.sidRunwayProcedureTransitions(),
                 &UserRunwayProcedureTransition::legSequenceIdent
             ),
@@ -1750,7 +1750,7 @@ MainWindow::MainWindow(QWidget *parent)
                 &UserRunwayProcedureTransition::procedureIdent
             ),
             textColumn(
-                QStringLiteral("Ident séquence"),
+                QStringLiteral("Ident LegSequence"),
                 &mProject.starRunwayProcedureTransitions(),
                 &UserRunwayProcedureTransition::legSequenceIdent
             ),
@@ -1983,20 +1983,17 @@ void MainWindow::selectSourceRow(QTableView* table, GenericTableModel* model, QS
     table->setCurrentIndex(proxyIndex);
 }
 
+
 // -----------------------------------------------------------------------------------------------------------
 // Supprime la ligne actuellement sélectionnée dans le tableau donné.
-// Supprime la ligne actuellement sélectionnée dans table, si une l'est.
-// Générique sur les 15 onglets — même geste partout (retirer de la table
-// EntityTable via removeFn, invalider l'id courant via clearCurrentId,
-// COMBLER LE TROU laissé par la suppression via compactFn, désactiver
-// l'éditeur, recharger le modèle) sans dupliquer la logique 15 fois. Le
-// type concret de l'id diffère par onglet, d'où les std::function plutôt
-// qu'un template ici (le .cpp n'a pas besoin d'être une unité de
-// compilation générique).
+// Méthode générique pour les 15 onglets, même geste partout [->retirer de la table 'EntityTable' via 'removeFn',
+// ->invalider l'id courant via 'clearCurrentId', ->combler le trou laissé par la suppression via 'compactFn',
+// ->désactiver l'éditeur, ->recharger le modèle] sans dupliquer la logique 15 fois.
+// Le type concret de l'id diffère par onglet, d'où les 'std::function' plutôt qu'un template ici (le .cpp n'a
+// pas besoin d'être une unité de compilation générique).
 //
-// compactFn renumérote la table à partir de SON PROPRE premier id restant
-// (jamais en dessous — cf. EntityTable::renumberFrom) : la suppression ne
-// fait donc jamais reculer la continuité avec le fichier mondial, elle ne
+// 'compactFn' renumérote la table à partir de SON PROPRE premier id restant (jamais en dessous — cf. EntityTable
+// ::renumberFrom) : la suppression ne fait donc jamais reculer la continuité avec le fichier mondial, elle ne
 // fait que refermer les trous internes laissés par la ligne retirée.
 void MainWindow::deleteCurrentRow(
         QTableView* table,
@@ -2007,6 +2004,25 @@ void MainWindow::deleteCurrentRow(
         const std::function<void()>& compactFn
         )
 {
+    // Demande de confirmation de la suppression
+    QMessageBox::StandardButton reponse;
+    reponse = QMessageBox::question(
+        this,
+        "Confirmation",
+        QStringLiteral(
+            "Voulez-vous vraiment supprimer cet enregistrement ?"
+            "\n\n(Cette suppression ne sera effective qu'après "
+            "avoir enregistré le projet)"
+        ),
+        QMessageBox::Yes | QMessageBox::No,
+        QMessageBox::No
+    );
+
+    // L'utilisateur refuse la suppression
+    if (reponse == QMessageBox::No) return; // On sort
+
+
+    // Il n'a pas refusé : on passe à la suppression
     const qint32 rawId = currentRawId(table, model, proxy);
 
     if (rawId < 0)
@@ -2017,6 +2033,7 @@ void MainWindow::deleteCurrentRow(
 
     clearCurrentId();
 
+    // Réindexe la table
     compactFn();
 
     editor->setEnabled(false);
@@ -3241,8 +3258,8 @@ void MainWindow::loadProjectIntoUi(qint64 id, const QString& name)
     mProject = *loaded;
     mCurrentProjectId = id;
     mSaveAction->setEnabled(true);
-    mReloadWorldAction->setEnabled(true);
-    mExportAction->setEnabled(true);
+    mReloadNav1TxtAction->setEnabled(true);
+    mExportTxtAction->setEnabled(true);
     mDecodeWorldAction->setEnabled(true);
     mIntegrateWorldAction->setEnabled(true);
     setWindowTitle(QStringLiteral("FF777 NavStudio — %1").arg(name));
@@ -3333,9 +3350,16 @@ void MainWindow::onNewProject()
     }
 
     StartingIndices indices;
+
     const QString worldFile = QFileDialog::getOpenFileName(
-        this, QStringLiteral("Fichier mondial (optionnel — Annuler pour démarrer à l'index 1)"),
-        navstud::tools::Nav1DbPipeline::workingDir());
+        this,
+        QStringLiteral("Fichier mondial (optionnel — Annuler pour démarrer à l'index 1)"),
+        navstud::tools::Nav1DbPipeline::workingDir(),
+        QString(),
+        nullptr,                            // Ce 5ème param fac. permet l'existence du 6ème ci-dessous
+        QFileDialog::DontUseNativeDialog    // Pour que le titre de la boite de dialogue s'affiche
+    );
+
     if (!worldFile.isEmpty()) {
         const WorldIndexReader reader;
         const WorldIndexResult result = reader.readStartingIndices(worldFile);
@@ -3408,6 +3432,7 @@ void MainWindow::onOpenProject()
     loadProjectIntoUi(projects.at(idx).id, projects.at(idx).name);
 }
 
+
 // -----------------------------------------------------------------------------------------------------------
 // Enregistre le projet courant dans la base de données.
 void MainWindow::onSaveProject()
@@ -3426,28 +3451,36 @@ void MainWindow::onSaveProject()
         statusBar()->showMessage(QStringLiteral("Projet enregistré."), 3000);
 }
 
+
 // -----------------------------------------------------------------------------------------------------------
 // Demande un nouveau fichier mondial puis réaligne le projet dessus.
-void MainWindow::onReloadWorldFile()
-{
-    if (mCurrentProjectId < 0)
-        return;
+void MainWindow::onReloadNav1TxtFile() {
 
-    const QString worldFile =
-                QFileDialog::getOpenFileName(
-                    this,
-                    QStringLiteral("Nouveau fichier mondial (mise à jour mensuelle)"),
-                    navstud::tools::Nav1DbPipeline::workingDir()
-                );
-    if (worldFile.isEmpty())
-        return;
+    if (mCurrentProjectId < 0) return;
 
-    applyWorldFile(worldFile);
+    const QString worldTxtFile = QFileDialog::getOpenFileName(
+
+        /* La méthode 'getOpenFileName' lit les paramètres dans l'ordre où ils sont passés.
+        De ce fait pour qu'elle accède au 6ème paramètre qui nous intéresse ici afin que le
+        titre de la boite de dialogue apparaisse, il doit en exister 5 avant.
+        D'où ajout de paramètres facultatifs 'Filtre de fichiers' et 'Pointeur de filtre' */
+        this,
+        QStringLiteral("(Re)Charger le fichier mondial Nav1.txt"),
+        navstud::tools::Nav1DbPipeline::workingDir(),
+        QString("*.txt"), // Filtre de fichiers
+        nullptr,          // Pointeur de filtre sélectionné
+        QFileDialog::DontUseNativeDialog // Force l'interface Qt graphiquement uniforme
+    );
+
+    if (worldTxtFile.isEmpty()) return;
+
+    applyWorldTxtFile(worldTxtFile);
 }
 
+
 // -----------------------------------------------------------------------------------------------------------
-// Renumérote le projet à partir des compteurs lus dans le fichier mondial.
-bool MainWindow::applyWorldFile(const QString& worldFile)
+// Renumérote le projet à partir des compteurs lus dans le fichier mondial Nav1.txt
+bool MainWindow::applyWorldTxtFile(const QString& worldFile)
 {
     const WorldIndexReader reader;
     const WorldIndexResult result = reader.readStartingIndices(worldFile);
@@ -3471,9 +3504,9 @@ bool MainWindow::applyWorldFile(const QString& worldFile)
     const auto reply = QMessageBox::question(
         this,
         QStringLiteral("Recharger le fichier mondial 'Nav1.txt'"),
-        QStringLiteral("Tous les id du projet vont être renumérotés pour repartir des nouveaux compteurs "
-                       "(\"# Count:\") lus dans ce fichier — le contenu de chaque ligne n'est pas modifié, "
-                       "seul son numéro change. Le projet sera enregistré immédiatement après. Continuer ?"),
+        QStringLiteral("Les index du projet vont être recalculés pour qu'ils s'alignent sur la fin du fichier mondial."
+                       "\nLe contenu des enregistrements n'est pas modifié, seul leur index change."
+                       "\nLe projet sera enregistré à la fin du processus. \nContinuer ?"),
         QMessageBox::Yes | QMessageBox::No, QMessageBox::No
     );
 
@@ -3487,14 +3520,14 @@ bool MainWindow::applyWorldFile(const QString& worldFile)
         QMessageBox::warning(
             this,
             QStringLiteral("Fichier mondial"),
-            QStringLiteral("Renumérotation effectuée en mémoire, mais échec de la mise"
+            QStringLiteral("Réindexation effectuée en mémoire, mais échec de la mise"
                            " à jour des compteurs de départ en base : %1").arg(err));
     }
     if (!mStore.saveProject(mCurrentProjectId, mProject, &err)) {
         QMessageBox::critical(
             this,
             QStringLiteral("Erreur"),
-            QStringLiteral("Renumérotation effectuée en mémoire, mais échec de la sauvegarde : %1").arg(err)
+            QStringLiteral("Réindexation effectuée en mémoire, mais échec de la sauvegarde : %1").arg(err)
         );
         return false;
     }
@@ -3549,32 +3582,42 @@ bool MainWindow::applyWorldFile(const QString& worldFile)
     mSidRunwayProcedureTransitionModel->reload();
     mStarRunwayProcedureTransitionModel->reload();
 
-    statusBar()->showMessage(QStringLiteral("Fichier mondial rechargé — projet renuméroté et enregistré."), 5000);
+    statusBar()->showMessage(
+        QStringLiteral("Fichier mondial 'Nav1.txt' rechargé — Projet réindexé et enregistré."),
+        5000
+    );
+
     return true;
 }
 
+
 // -----------------------------------------------------------------------------------------------------------
 // Régénère le projet puis écrit les 15 fichiers d'export dans le dossier de l'app.
-void MainWindow::onExportFiles()
+void MainWindow::onExportTxtFiles()
 {
-    if (mCurrentProjectId < 0)
-        return;
+    if (mCurrentProjectId < 0) return;
 
     using namespace navstud::tools;
 
-    // Écrit désormais les 15 fichiers dans le dossier où tourne l'application.
+    // Écrit les 15 fichiers dans le dossier où tourne l'application.
     const QString outputDir = Nav1DbPipeline::workingDir();
 
     const RegenerationResult result = Regenerator().regenerate(mProject);
     if (!result.isValid()) {
+
         const auto reply = QMessageBox::warning(
-            this, QStringLiteral("Alertes en cours"),
-            QStringLiteral("%1 ligne(s) non résolue(s) ou en erreur — elles seront simplement absentes des "
-                            "fichiers générés. Exporter quand même ?")
-                .arg(result.alertCount()),
-            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-        if (reply != QMessageBox::Yes)
-            return;
+            this,
+            QStringLiteral("Alertes en cours"),
+            QStringLiteral(
+                "%1 ligne(s) non résolue(s) ou en erreur"
+                "\nElles seront simplement absentes des "
+                "fichiers générés. \nExporter quand même ?"
+                ).arg(result.alertCount()),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No
+        );
+
+        if (reply != QMessageBox::Yes) return;
     }
 
     const NavDataWriter writer;
@@ -3593,21 +3636,28 @@ void MainWindow::onExportFiles()
         QMessageBox::critical(
             this,
             QStringLiteral("Erreur d'export"),
-            QStringLiteral("Échec sur %1 fichier(s) :\n%2").arg(failures.size()).arg(failures.join(QStringLiteral("\n")))
+            QStringLiteral(
+                "Échec sur %1 fichier(s) :\n%2"
+                ).arg(failures.size()).arg(failures.join(QStringLiteral("\n")))
         );
         return;
     }
 
     statusBar()->showMessage(
-        QStringLiteral("%1 fichiers écrits dans %2 (%3 lignes au total).").arg(results.size()).arg(outputDir).arg(totalLines), 6000);
+        QStringLiteral(
+            "%1 fichiers écrits dans %2 (%3 lignes au total)."
+            ).arg(results.size()).arg(outputDir).arg(totalLines),
+        6000
+    );
 }
 
 namespace {
 
-// -----------------------------------------------------------------------------------------------------------
-// Lit les lignes non vides d'un fichier d'import texte.
-// Lit un fichier d'import (un enregistrement par ligne, champs séparés par
-// '|', généré par le script d'extraction Excel) — lignes vides ignorées.
+// ==============================================================================================================================
+// READIMPORTLINES
+// Fonction utilisée dans la méthode (orpheline) ci-après
+// Lit un fichier d'import (un enregistrement par ligne, champs séparés par '|', généré par le script
+// d'extraction Excel) — lignes vides ignorées.
 QStringList readImportLines(const QString& dir, const QString& fileName)
 {
     QStringList lines;
@@ -3626,37 +3676,44 @@ QStringList readImportLines(const QString& dir, const QString& fileName)
 
 } // namespace
 
-// -----------------------------------------------------------------------------------------------------------
-// ONIMPORTFROMTEXTFILES
-// LA MÉTHODE EST MAINTENUE POUR LE CAS OÙ, MAIS LE MENU LIÉ EST DÉSACTIVÉ POUR ÉVITER D'ÉCRASER LA BDD
-// Elle importe en une fois un projet (LFFA) à partir des 15 fichiers texte pré-extraits (un par structure).
-// Ça n'est PAS une fonctionnalité d'import récurrente : conçue pour peupler un projet une seule fois à partir
-// de données existantes (ex. classeur Excel), avec des id EXPLICITES déjà alignés sur la continuité mondiale
-// (pas besoin de StartingIndices ici, cf. UserProject.h).
-// Format de chaque ligne, champs séparés par '|', id en premier :
-//   points.txt                id|ident|lat|lon|magVar|holdCourse|holdDist|holdTime|holdSide
-//   waypoints.txt             id|pointIdent
-//   airports.txt              id|pointIdent|elevation|speedLimit|altLimit|transAlt|transLevel
-//   runways.txt               id|airportIdent|thresholdIdent|elevation|gradient|course|length|displaced|stopway|cross
-//   navaids.txt               id|type|pointIdent|associatedNavaidIdent|elevation|declination|frequency|category|course
-//                             |angle|runwayIdent
-//   legsequences.txt          id|ident|ilsOrRnav|procedureKind|altitudeLevelTransInFeet
-//   legs.txt                  id|legSequenceIdent|navaidIdent|pointIdent|wpDescription|codePath|course|distance|navaidCourse
-//                             |navaidDistance|altMin|altMax|airSpeed|path|turnDir|rnp
-//   approaches.txt            id|runwayIdent|legSequenceIdent|decisionHeightInFeet|minimumDescentInFeet
-//   approachtransitions.txt   id|approachIdent|legSequenceIdent
-//   procedures_sid/star.txt   id|airportIdent|legSequenceIdent
-//   proctrans_sid/star.txt    id|procedureIdent|legSequenceIdent
-//   runproctrans_sid/star.txt id|runwayIdent|procedureIdent|legSequenceIdent
+
+/* ==============================================================================================================================
+ONIMPORTFROMTEXTFILES
+LA MÉTHODE EST MAINTENUE POUR LE CAS OÙ, MAIS LE MENU LIÉ EST DÉSACTIVÉ POUR ÉVITER D'ÉCRASER LA BDD
+Elle importe en une fois un projet (LFFA) à partir des 15 fichiers texte pré-extraits (un par structure). Ça n'est PAS une
+fonctionnalité d'import pérenne : conçue pour peupler un projet 1 seule fois à partir de données existantes (ex. classeur Excel),
+avec des id EXPLICITES déjà alignés sur la continuité mondiale (pas besoin de StartingIndices ici, cf. UserProject.h).
+
+Format de chaque ligne, champs séparés par '|', id en premier :
+   points.txt                id|ident|lat|lon|magVar|holdCourse|holdDist|holdTime|holdSide
+   waypoints.txt             id|pointIdent
+   airports.txt              id|pointIdent|elevation|speedLimit|altLimit|transAlt|transLevel
+   runways.txt               id|airportIdent|thresholdIdent|elevation|gradient|course|length|displaced|stopway|cross
+   navaids.txt               id|type|pointIdent|associatedNavaidIdent|elevation|declination|frequency|category|course
+                             |angle|runwayIdent
+   legsequences.txt          id|ident|ilsOrRnav|procedureKind|altitudeLevelTransInFeet
+   legs.txt                  id|legSequenceIdent|navaidIdent|pointIdent|wpDescription|codePath|course|distance|navaidCourse
+                             |navaidDistance|altMin|altMax|airSpeed|path|turnDir|rnp
+   approaches.txt            id|runwayIdent|legSequenceIdent|decisionHeightInFeet|minimumDescentInFeet
+   approachtransitions.txt   id|approachIdent|legSequenceIdent
+   procedures_sid/star.txt   id|airportIdent|legSequenceIdent
+   proctrans_sid/star.txt    id|procedureIdent|legSequenceIdent
+   runproctrans_sid/star.txt id|runwayIdent|procedureIdent|legSequenceIdent
+------------------------------------------------------------------------------------------------------------------------------ */
 void MainWindow::onImportFromTextFiles()
 {
     const QString name = QInputDialog::getText(this, QStringLiteral("Nouveau projet importé"), QStringLiteral("Nom du projet :"));
+
     if (name.isEmpty())
         return;
 
     const QString dir = QFileDialog::getExistingDirectory(
-        this, QStringLiteral("Dossier contenant les 15 fichiers d'import (points.txt, legs.txt, ...)"),
-        navstud::tools::Nav1DbPipeline::workingDir());
+        this,
+        QStringLiteral("Dossier contenant les 15 fichiers d'import (points.txt, legs.txt, ...)"),
+        navstud::tools::Nav1DbPipeline::workingDir(),
+        QFileDialog::DontUseNativeDialog    // Pour que le titre de la boite de dialogue s'affiche
+    );
+
     if (dir.isEmpty())
         return;
 
@@ -3877,9 +3934,14 @@ void MainWindow::onImportFromTextFiles()
     }
 
     loadProjectIntoUi(targetId, name); // recharge depuis la base (source de vérité), remplace mProject ci-dessus
-    statusBar()->showMessage(QStringLiteral("Import terminé : %1 lignes réparties sur 15 structures.").arg(totalLines), 6000);
 
-} // !onImportFromTextFiles
+    statusBar()->showMessage(
+        QStringLiteral("Import terminé : %1 lignes réparties sur 15 structures.").arg(totalLines),
+        6000
+    );
+
+} /* !onImportFromTextFiles ================================================================================================== */
+
 
 
 // -----------------------------------------------------------------------------------------------------------
@@ -3909,7 +3971,7 @@ void MainWindow::onDecodeNav1dbFile()
     }
 
     // Op 3 : réaligner les id du projet sur les nouveaux compteurs lus.
-    if (!applyWorldFile(Nav1DbPipeline::nav1TxtPath()))
+    if (!applyWorldTxtFile(Nav1DbPipeline::nav1TxtPath()))
         return;
 
     statusBar()->showMessage(QStringLiteral("nav1.db décodé ; fichier mondial rechargé."), 6000);

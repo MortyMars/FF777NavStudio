@@ -27,7 +27,7 @@ RunwayProcedureTransitionEditorWidget::RunwayProcedureTransitionEditorWidget(QWi
     form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     form->addRow(QStringLiteral("Ident Runway"), mRunwayIdentEdit);
     form->addRow(QStringLiteral("Ident Procedure"), mProcedureIdentEdit);
-    form->addRow(QStringLiteral("Ident séquence"), mLegSequenceIdentEdit);
+    form->addRow(QStringLiteral("Ident LegSequence"), mLegSequenceIdentEdit);
 
     auto* formGroup = new QGroupBox(QStringLiteral("Saisie — RUNWAYPROCEDURETRANSITION"), this);
     formGroup->setLayout(form);

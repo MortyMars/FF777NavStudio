@@ -29,7 +29,7 @@ ApproachEditorWidget::ApproachEditorWidget(QWidget* parent)
     auto* form = new QFormLayout;
     form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     form->addRow(QStringLiteral("Ident Runway"), mRunwayIdentEdit);
-    form->addRow(QStringLiteral("Ident séquence"), mLegSequenceIdentEdit);
+    form->addRow(QStringLiteral("Ident LegSequence"), mLegSequenceIdentEdit);
     form->addRow(QStringLiteral("Decision Height (ft)"), mDecisionHeightEdit);
     form->addRow(QStringLiteral("Minimum Descent (ft)"), mMinimumDescentEdit);
 

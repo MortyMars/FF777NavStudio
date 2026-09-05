@@ -24,7 +24,7 @@ ProcedureTransitionEditorWidget::ProcedureTransitionEditorWidget(QWidget* parent
     auto* form = new QFormLayout;
     form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     form->addRow(QStringLiteral("Ident Procedure"), mProcedureIdentEdit);
-    form->addRow(QStringLiteral("Ident séquence"), mLegSequenceIdentEdit);
+    form->addRow(QStringLiteral("Ident LegSequence"), mLegSequenceIdentEdit);
 
     auto* formGroup = new QGroupBox(QStringLiteral("Saisie — PROCEDURETRANSITION"), this);
     formGroup->setLayout(form);

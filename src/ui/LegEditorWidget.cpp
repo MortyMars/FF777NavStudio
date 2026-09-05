@@ -90,7 +90,7 @@ LegEditorWidget::LegEditorWidget(QWidget* parent)
     auto* form = new QFormLayout;
     form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     form->addRow(QStringLiteral("Code path"), mCodePathCombo);
-    form->addRow(QStringLiteral("Ident séquence"), mLegSequenceIdentEdit);
+    form->addRow(QStringLiteral("Ident LegSequence"), mLegSequenceIdentEdit);
     form->addRow(QStringLiteral("Ident point (FIX)"), mPointIdentEdit);
     form->addRow(QStringLiteral("Description WP"), mWpDescriptionCombo);
     form->addRow(QStringLiteral("Cap"), mCourseEdit);

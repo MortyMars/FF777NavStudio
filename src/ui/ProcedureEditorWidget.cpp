@@ -24,7 +24,7 @@ ProcedureEditorWidget::ProcedureEditorWidget(QWidget* parent)
     auto* form = new QFormLayout;
     form->setLabelAlignment(Qt::AlignLeft | Qt::AlignVCenter);
     form->addRow(QStringLiteral("Ident Airport"), mAirportIdentEdit);
-    form->addRow(QStringLiteral("Ident séquence"), mLegSequenceIdentEdit);
+    form->addRow(QStringLiteral("Ident LegSequence"), mLegSequenceIdentEdit);
 
     auto* formGroup = new QGroupBox(QStringLiteral("Saisie — PROCEDURE"), this);
     formGroup->setLayout(form);

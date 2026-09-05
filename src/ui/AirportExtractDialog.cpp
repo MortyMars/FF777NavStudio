@@ -111,22 +111,36 @@ AirportExtractDialog::AirportExtractDialog(navstud::persistence::ProjectStore& s
 
 AirportExtractDialog::~AirportExtractDialog() = default;
 
+
 // -----------------------------------------------------------------------------------------------------------
 void AirportExtractDialog::browseSourceFile()
 {
     const QString path = QFileDialog::getOpenFileName(
-        this, QStringLiteral("Fichier mondial nav1.txt"), navstud::tools::Nav1DbPipeline::workingDir(),
-        QStringLiteral("NavData Text (*.txt);;Tous les fichiers (*)"));
+        this,
+        QStringLiteral("Fichier mondial nav1.txt"),
+        navstud::tools::Nav1DbPipeline::workingDir(),
+        QStringLiteral("NavData Text (*.txt);;Tous les fichiers (*)"),
+        nullptr,                            // Ce 5ème param fac. permet l'existence du 6ème ci-dessous
+        QFileDialog::DontUseNativeDialog    // Pour que le titre de la boite de dialog s'affiche
+    );
+
     if (!path.isEmpty())
         mSourceEdit->setText(path);
 }
+
 
 // -----------------------------------------------------------------------------------------------------------
 void AirportExtractDialog::browseOutputFile()
 {
     const QString path = QFileDialog::getSaveFileName(
-        this, QStringLiteral("Fichier extrait"), mOutputEdit->text(),
-        QStringLiteral("NavData Text (*.txt);;Tous les fichiers (*)"));
+        this,
+        QStringLiteral("Fichier extrait"),
+        mOutputEdit->text(),
+        QStringLiteral("NavData Text (*.txt);;Tous les fichiers (*)"),
+        nullptr,                            // Ce 5ème param fac. permet l'existence du 6ème ci-dessous
+        QFileDialog::DontUseNativeDialog    // Pour que le de la boite de dialog titre s'affiche
+    );
+
     if (!path.isEmpty())
         mOutputEdit->setText(path);
 }
