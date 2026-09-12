@@ -77,6 +77,13 @@ class AirportExtractDialog : public QDialog
             navstud::userdata::StartingIndices indices;
             bool indicesOk = false;
             QStringList missingSections;
+
+            // Résultat de la suppression/réindexation du fichier mondial
+            // (menu « Aéroport -> Projet ») : réalisée uniquement lorsque le
+            // projet est effectivement créé.
+            bool removalDone = false;
+            int  removedRecords = 0;
+            int  danglingReferences = 0;
         };
 
         void setBusy(bool busy);

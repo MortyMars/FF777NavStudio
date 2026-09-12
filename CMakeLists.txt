@@ -84,6 +84,8 @@ add_library(FF777NavStudioCore STATIC
     src/extract/NavDataBase.cpp
     src/extract/ExtractedProjectBuilder.h
     src/extract/ExtractedProjectBuilder.cpp
+    src/extract/WorldFileRewriter.h
+    src/extract/WorldFileRewriter.cpp
 
     # Décodage/encodage nav1.db : ParserFFDB (classes intégrées)
     src/parser/FileConverter.h
@@ -165,6 +167,10 @@ add_executable(FF777NavStudio
     src/ui/docs.qrc
     src/ui/AirportExtractDialog.h
     src/ui/AirportExtractDialog.cpp
+    src/ui/FileStatusIndicator.h
+    src/ui/FileStatusIndicator.cpp
+    src/ui/ThemeManager.h
+    src/ui/ThemeManager.cpp
 )
 
 target_include_directories(FF777NavStudio

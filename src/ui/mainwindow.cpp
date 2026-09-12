@@ -1,4 +1,5 @@
 #include <QAction>
+#include <QActionGroup>
 #include <QDialog>
 #include <QDir>
 #include <QFile>
@@ -17,6 +18,7 @@
 #include <QPair>
 #include <QPixmap>
 #include <QPushButton>
+#include <QResizeEvent>
 #include <QSize>
 #include <QSizePolicy>
 #include <QSortFilterProxyModel>
@@ -42,9 +44,11 @@
 #include "AirportExtractDialog.h"
 #include "ApproachEditorWidget.h"
 #include "ApproachTransitionEditorWidget.h"
+#include "FileStatusIndicator.h"
 #include "GenericTableModel.h"
 #include "LegEditorWidget.h"
 #include "LegSequenceEditorWidget.h"
+#include "NavDataBase.h"
 #include "NavDataWriter.h"
 #include "NavaidEditorWidget.h"
 #include "PointEditorWidget.h"
@@ -53,6 +57,7 @@
 #include "RunwayEditorWidget.h"
 #include "RunwayProcedureTransitionEditorWidget.h"
 #include "TableColumnHelpers.h"
+#include "ThemeManager.h"
 #include "UnitConverterWidget.h"
 #include "WaypointEditorWidget.h"
 #include "WorldIndexReader.h"
@@ -273,6 +278,42 @@ MainWindow::MainWindow(QWidget *parent)
     connect(decodeNav1dbAction,     &QAction::triggered, this, &MainWindow::onDecodeNav1dbFile);
     connect(integrateWorldAction,   &QAction::triggered, this, &MainWindow::onIntegrateWorldFile);
     connect(extractAirportAction,   &QAction::triggered, this, &MainWindow::onExtractAirport);
+
+    // ------------------------------------------------------------------------------------------------------
+    // MENU AFFICHAGE — choix du thème (Système / Clair / Sombre).
+    // Le thème est appliqué immédiatement et mémorisé dans les QSettings.
+    auto* viewMenu = menuBar()->addMenu(QStringLiteral("Affichage"));
+
+    auto* themeGroup = new QActionGroup(this);
+    themeGroup->setExclusive(true);
+
+    const auto addThemeAction = [this, viewMenu, themeGroup](
+            const QString& label, navstud::ui::ThemeManager::Theme theme) {
+        QAction* action = viewMenu->addAction(label);
+        action->setCheckable(true);
+        action->setActionGroup(themeGroup);
+        action->setData(static_cast<int>(theme));
+        connect(action, &QAction::triggered, this, [theme]() {
+            navstud::ui::ThemeManager::apply(theme);
+            navstud::ui::ThemeManager::saveTheme(theme);
+        });
+        return action;
+    };
+
+    QAction* systemThemeAction = addThemeAction(QStringLiteral("Thème système"),
+                                                navstud::ui::ThemeManager::Theme::System);
+    QAction* lightThemeAction  = addThemeAction(QStringLiteral("Thème clair"),
+                                                navstud::ui::ThemeManager::Theme::Light);
+    QAction* darkThemeAction   = addThemeAction(QStringLiteral("Thème sombre"),
+                                                navstud::ui::ThemeManager::Theme::Dark);
+
+    // Coche le thème actuellement mémorisé (appliqué au démarrage dans main()).
+    switch (navstud::ui::ThemeManager::loadSavedTheme()) {
+    case navstud::ui::ThemeManager::Theme::Light:  lightThemeAction->setChecked(true);  break;
+    case navstud::ui::ThemeManager::Theme::Dark:   darkThemeAction->setChecked(true);   break;
+    case navstud::ui::ThemeManager::Theme::System:
+    default:                                       systemThemeAction->setChecked(true); break;
+    }
 
     // ------------------------------------------------------------------------------------------------------
     // MENU AIDE
@@ -1831,10 +1872,21 @@ MainWindow::MainWindow(QWidget *parent)
     setCentralWidget(tabs);
     setWindowTitle(QStringLiteral("FF777 NavStudio — aucun projet ouvert"));
 
+    // ------------------------------------------------------------------------------------------------------
+    // Indicateur d'état des fichiers : incrusté en bas à droite de la zone
+    // centrale. Il est enfant de cette zone pour ne pas recouvrir la barre de
+    // menus ni la barre d'état, et repositionné dans resizeEvent().
+    mStatusIndicator = new FileStatusIndicator(centralWidget());
+    mStatusIndicator->raise();
+
     // Occupe la largeur de l'écran dès le lancement — showMaximized() plutôt
     // qu'un calcul manuel de géométrie (fiable quel que soit l'écran/la
     // configuration multi-moniteurs, barre de menu/dock déjà pris en compte).
     showMaximized();
+
+    // État initial (colonne « Ouverture appli » du tableau Etat_des_fichiers).
+    updateFileStatus(StatusEvent::AppOpened);
+    positionStatusIndicator();
 
 } // !Constructeur
 
@@ -1844,6 +1896,74 @@ MainWindow::MainWindow(QWidget *parent)
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+
+// -----------------------------------------------------------------------------------------------------------
+// Repositionne l'indicateur d'état à chaque redimensionnement de la fenêtre.
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+    QMainWindow::resizeEvent(event);
+    positionStatusIndicator();
+}
+
+
+// -----------------------------------------------------------------------------------------------------------
+// Place l'indicateur d'état en bas à droite de la zone centrale (incrustation).
+void MainWindow::positionStatusIndicator()
+{
+    if (!mStatusIndicator || !centralWidget())
+        return;
+
+    QWidget* area = centralWidget();
+    const int margin = 12;
+    const QSize hint = mStatusIndicator->sizeHint();
+    mStatusIndicator->resize(hint);
+    mStatusIndicator->move(
+        area->width()  - mStatusIndicator->width()  - margin,
+        area->height() - mStatusIndicator->height() - margin
+    );
+    mStatusIndicator->raise();
+}
+
+
+// -----------------------------------------------------------------------------------------------------------
+// Met à jour l'indicateur d'état des fichiers. L'AIRAC ($AIRAC) est relu dans
+// le nav1.txt du dossier de travail à chaque évènement.
+void MainWindow::updateFileStatus(StatusEvent event)
+{
+    if (!mStatusIndicator)
+        return;
+
+    QString airacError;
+    const QString airac = navstud::tools::Nav1DbPipeline::readAirac(
+        navstud::tools::Nav1DbPipeline::nav1TxtPath(), &airacError);
+    mStatusIndicator->setAirAirac(airac);
+
+    switch (event) {
+    case StatusEvent::AppOpened:
+        mStatusIndicator->notifyAppOpened();
+        break;
+    case StatusEvent::AirportToProject:
+        mStatusIndicator->notifyAirportToProject();
+        break;
+    case StatusEvent::ReloadWorld:
+        mStatusIndicator->notifyReloadWorld();
+        break;
+    case StatusEvent::ExportTxt:
+        mStatusIndicator->notifyExportTxt(mCurrentProjectName);
+        break;
+    case StatusEvent::DecodeNav1Db:
+        mStatusIndicator->notifyDecodeNav1Db();
+        break;
+    case StatusEvent::IntegrateWorld:
+        mStatusIndicator->notifyIntegrate();
+        break;
+    }
+
+    // La largeur nécessaire dépend du contenu (ex. nom de projet) : on
+    // repositionne/redimensionne l'incrustation après chaque mise à jour.
+    positionStatusIndicator();
 }
 
 
@@ -3257,6 +3377,7 @@ void MainWindow::loadProjectIntoUi(qint64 id, const QString& name)
 
     mProject = *loaded;
     mCurrentProjectId = id;
+    mCurrentProjectName = name; // pour l'avertissement d'export (exigence n°3)
     mSaveAction->setEnabled(true);
     mReloadNav1TxtAction->setEnabled(true);
     mExportTxtAction->setEnabled(true);
@@ -3320,7 +3441,13 @@ void MainWindow::loadProjectIntoUi(qint64 id, const QString& name)
 void MainWindow::onExtractAirport()
 {
     AirportExtractDialog dialog(mStore, this);
-    connect(&dialog, &AirportExtractDialog::projectCreated, this, &MainWindow::loadProjectIntoUi);
+    // Le projet extrait devient le projet courant, puis on met à jour
+    // l'indicateur d'état (colonne « Aéroport -> Projet »).
+    connect(&dialog, &AirportExtractDialog::projectCreated, this,
+            [this](qint64 id, const QString& name) {
+                loadProjectIntoUi(id, name);
+                updateFileStatus(StatusEvent::AirportToProject);
+            });
     dialog.exec();
 }
 
@@ -3453,28 +3580,73 @@ void MainWindow::onSaveProject()
 
 
 // -----------------------------------------------------------------------------------------------------------
-// Demande un nouveau fichier mondial puis réaligne le projet dessus.
-void MainWindow::onReloadNav1TxtFile() {
+// Décode nav1.db vers le nav1.txt du dossier de travail (un décodage repart
+// toujours d'un fichier neuf : l'ancien nav1.txt est supprimé au préalable).
+// Factorisé pour être appelé par « Décoder » comme par « Recharger ».
+bool MainWindow::decodeWorldDbToTxt(QString* errorMessage)
+{
+    using namespace navstud::tools;
 
-    if (mCurrentProjectId < 0) return;
+    // Source : par défaut le nav1.db du dossier de travail. S'il est absent,
+    // une boîte de sélection permet de désigner un fichier (même traitement
+    // que pour nav1.txt).
+    QString sourceDb = Nav1DbPipeline::nav1DbPath();
+    if (!QFile::exists(sourceDb)) {
+        const QString chosen = QFileDialog::getOpenFileName(
+            this,
+            QStringLiteral("Sélectionner le fichier mondial 'nav1.db'"),
+            Nav1DbPipeline::workingDir(),
+            QStringLiteral("NavData DB (*.db);;Tous les fichiers (*)"),
+            nullptr,
+            QFileDialog::DontUseNativeDialog // Pour que le titre de la boîte s'affiche
+        );
+        if (chosen.isEmpty()) {
+            if (errorMessage)
+                *errorMessage = QStringLiteral("Aucun fichier 'nav1.db' désigné.");
+            return false;
+        }
+        sourceDb = chosen;
+    }
 
-    const QString worldTxtFile = QFileDialog::getOpenFileName(
+    if (QFile::exists(Nav1DbPipeline::nav1TxtPath()))
+        QFile::remove(Nav1DbPipeline::nav1TxtPath());
 
-        /* La méthode 'getOpenFileName' lit les paramètres dans l'ordre où ils sont passés.
-        De ce fait pour qu'elle accède au 6ème paramètre qui nous intéresse ici afin que le
-        titre de la boite de dialogue apparaisse, il doit en exister 5 avant.
-        D'où ajout de paramètres facultatifs 'Filtre de fichiers' et 'Pointeur de filtre' */
-        this,
-        QStringLiteral("(Re)Charger le fichier mondial Nav1.txt"),
-        navstud::tools::Nav1DbPipeline::workingDir(),
-        QString("*.txt"), // Filtre de fichiers
-        nullptr,          // Pointeur de filtre sélectionné
-        QFileDialog::DontUseNativeDialog // Force l'interface Qt graphiquement uniforme
-    );
+    QString detail;
+    if (!Nav1DbPipeline::decode(sourceDb, errorMessage, &detail)) {
+        if (errorMessage)
+            *errorMessage = QStringLiteral("Décodage nav1.db -> nav1.txt impossible : %1").arg(*errorMessage);
+        return false;
+    }
+    return true;
+}
 
-    if (worldTxtFile.isEmpty()) return;
 
-    applyWorldTxtFile(worldTxtFile);
+// -----------------------------------------------------------------------------------------------------------
+// « Recharger le fichier mondial 'nav1.txt' » : conformément à l'exigence n°2,
+// commence par décoder nav1.db vers le nav1.txt du dossier de travail (même
+// opération que le menu « Décoder 'nav1.db' -> 'nav1.txt' »), puis réaligne
+// les index des enregistrements du projet chargé sur ce fichier.
+void MainWindow::onReloadNav1TxtFile()
+{
+    if (mCurrentProjectId < 0)
+        return;
+
+    // 1) Décodage préalable de nav1.db vers nav1.txt.
+    QString errorMessage;
+    if (!decodeWorldDbToTxt(&errorMessage)) {
+        QMessageBox::critical(
+            this,
+            QStringLiteral("Recharger le fichier mondial"),
+            errorMessage
+        );
+        return;
+    }
+
+    // 2) Réindexation des enregistrements du projet chargé.
+    if (!applyWorldTxtFile(navstud::tools::Nav1DbPipeline::nav1TxtPath()))
+        return;
+
+    updateFileStatus(StatusEvent::ReloadWorld);
 }
 
 
@@ -3592,12 +3764,34 @@ bool MainWindow::applyWorldTxtFile(const QString& worldFile)
 
 
 // -----------------------------------------------------------------------------------------------------------
-// Régénère le projet puis écrit les 15 fichiers d'export dans le dossier de l'app.
-void MainWindow::onExportTxtFiles()
+// Régénère le projet puis écrit les 15 fichiers d'export dans le dossier de
+// l'app. Lorsque confirm vaut vrai, prévient d'abord l'utilisateur que le jeu
+// de fichiers txt actuel va être remplacé par celui du projet chargé (exigence
+// n°3). Retourne true si l'export a effectivement été réalisé.
+bool MainWindow::exportProjectTxtFiles(bool confirm)
 {
-    if (mCurrentProjectId < 0) return;
+    if (mCurrentProjectId < 0)
+        return false;
 
     using namespace navstud::tools;
+
+    // Avertissement préalable : nomme explicitement le projet chargé.
+    if (confirm) {
+        const QString projectName = mCurrentProjectName.isEmpty()
+            ? QStringLiteral("(sans nom)")
+            : mCurrentProjectName;
+        const auto reply = QMessageBox::question(
+            this,
+            QStringLiteral("Exporter les fichiers .txt du projet"),
+            QStringLiteral(
+                "Le jeu de fichiers txt actuel va être remplacé par celui du présent projet « %1 »."
+                "\n\nContinuer ?").arg(projectName),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No
+        );
+        if (reply != QMessageBox::Yes)
+            return false;
+    }
 
     // Écrit les 15 fichiers dans le dossier où tourne l'application.
     const QString outputDir = Nav1DbPipeline::workingDir();
@@ -3617,7 +3811,8 @@ void MainWindow::onExportTxtFiles()
             QMessageBox::No
         );
 
-        if (reply != QMessageBox::Yes) return;
+        if (reply != QMessageBox::Yes)
+            return false;
     }
 
     const NavDataWriter writer;
@@ -3640,7 +3835,7 @@ void MainWindow::onExportTxtFiles()
                 "Échec sur %1 fichier(s) :\n%2"
                 ).arg(failures.size()).arg(failures.join(QStringLiteral("\n")))
         );
-        return;
+        return false;
     }
 
     statusBar()->showMessage(
@@ -3649,6 +3844,30 @@ void MainWindow::onExportTxtFiles()
             ).arg(results.size()).arg(outputDir).arg(totalLines),
         6000
     );
+
+    updateFileStatus(StatusEvent::ExportTxt);
+    return true;
+}
+
+
+// -----------------------------------------------------------------------------------------------------------
+// Menu « Exporter les fichiers .txt du projet ».
+void MainWindow::onExportTxtFiles()
+{
+    exportProjectTxtFiles(true);
+}
+
+
+// -----------------------------------------------------------------------------------------------------------
+// Identifiant de l'aéroport du projet courant (point ident du premier
+// aéroport saisi). Sert au contrôle de non-existence avant intégration.
+QString MainWindow::currentAirportIdent() const
+{
+    const auto& airports = mProject.airports();
+    if (airports.order().isEmpty())
+        return QString();
+    const auto* airport = airports.find(airports.order().first());
+    return airport ? airport->pointIdent.trimmed().toUpper() : QString();
 }
 
 namespace {
@@ -3949,24 +4168,15 @@ void MainWindow::onImportFromTextFiles()
 // (opération 2 puis 3 de la chaîne)
 void MainWindow::onDecodeNav1dbFile()
 {
-    // Op 2 : décoder 'nav1;db'
     if (mCurrentProjectId < 0)
-            return;
+        return;
 
     using namespace navstud::tools;
 
-    if (QFile::exists(Nav1DbPipeline::nav1TxtPath()))
-            QFile::remove(Nav1DbPipeline::nav1TxtPath());
-
+    // Op 2 : décoder 'nav1.db' vers nav1.txt (helper partagé avec « Recharger »).
     QString errorMessage;
-    QString detail;
-
-    if (!Nav1DbPipeline::decode(&errorMessage, &detail)) {
-        QMessageBox::critical(
-            this,
-            QStringLiteral("Décodage nav1.db"),
-            QStringLiteral("Décodage impossible : %1").arg(errorMessage)
-        );
+    if (!decodeWorldDbToTxt(&errorMessage)) {
+        QMessageBox::critical(this, QStringLiteral("Décodage nav1.db"), errorMessage);
         return;
     }
 
@@ -3975,12 +4185,18 @@ void MainWindow::onDecodeNav1dbFile()
         return;
 
     statusBar()->showMessage(QStringLiteral("nav1.db décodé ; fichier mondial rechargé."), 6000);
+    updateFileStatus(StatusEvent::DecodeNav1Db);
 }
 
 
 // -----------------------------------------------------------------------------------------------------------
 // Compléter nav1.txt puis réencoder et déployer nav1.db.
 // (opérations 4 -> 5 -> 6 du workflow)
+//
+// Conformément à l'exigence n°4, la toute première action est l'export des
+// fichiers .txt du projet, immédiatement suivi du contrôle de non-existence de
+// l'aéroport à injecter dans nav1.txt ; l'action est abandonnée si l'aéroport
+// y figure déjà.
 void MainWindow::onIntegrateWorldFile()
 {
     if (mCurrentProjectId < 0)
@@ -3988,6 +4204,49 @@ void MainWindow::onIntegrateWorldFile()
 
     using namespace navstud::tools;
 
+    // 1) Exporter d'abord les 15 fichiers .txt du projet (avec l'avertissement
+    //    de remplacement du jeu de fichiers, exigence n°3).
+    if (!exportProjectTxtFiles(true))
+        return;
+
+    // 2) Vérifier que l'aéroport (ident du point d'aéroport du projet) n'est
+    //    pas déjà présent dans le nav1.txt mondial.
+    const QString airportIdent = currentAirportIdent();
+    if (!airportIdent.isEmpty()) {
+        const QString nav1Txt = Nav1DbPipeline::nav1TxtPath();
+        if (!QFile::exists(nav1Txt)) {
+            QMessageBox::critical(
+                this,
+                QStringLiteral("Compléter nav1.txt"),
+                QStringLiteral("nav1.txt introuvable dans le dossier de travail (%1).").arg(nav1Txt)
+            );
+            return;
+        }
+
+        navstud::extract::NavDataBase db;
+        QString loadError;
+        if (!db.load(nav1Txt, &loadError)) {
+            QMessageBox::critical(
+                this,
+                QStringLiteral("Compléter nav1.txt"),
+                QStringLiteral("Lecture de nav1.txt impossible : %1").arg(loadError)
+            );
+            return;
+        }
+
+        if (db.airportIdents().contains(airportIdent, Qt::CaseInsensitive)) {
+            QMessageBox::warning(
+                this,
+                QStringLiteral("Aéroport déjà présent"),
+                QStringLiteral(
+                    "L'aéroport « %1 » existe déjà dans 'nav1.txt'.\n\n"
+                    "L'intégration est abandonnée pour éviter un doublon.").arg(airportIdent)
+            );
+            return;
+        }
+    }
+
+    // 3) Chaîne d'intégration -> réencodage -> déploiement.
     QString errorMessage;
     QString detail;
     if (!Nav1DbPipeline::integrateEncodeDeploy(&errorMessage, &detail)) {
@@ -3998,5 +4257,6 @@ void MainWindow::onIntegrateWorldFile()
 
     statusBar()->showMessage(detail, 8000);
     QMessageBox::information(this, QStringLiteral("Réencodage terminé"), detail);
+    updateFileStatus(StatusEvent::IntegrateWorld);
 }
 

@@ -33,6 +33,7 @@ class ProcedureEditorWidget;
 class ProcedureTransitionEditorWidget;
 class RunwayProcedureTransitionEditorWidget;
 class AirportExtractDialog;
+class FileStatusIndicator;
 
 class MainWindow : public QMainWindow
 {
@@ -41,6 +42,11 @@ class MainWindow : public QMainWindow
     public:
         explicit MainWindow(QWidget *parent = nullptr);
         ~MainWindow() override;
+
+    protected:
+        // Repositionne l'indicateur d'état des fichiers en bas à droite de
+        // la zone centrale (incrustation).
+        void resizeEvent(QResizeEvent* event) override;
 
     private slots:
         void onPointSelectionChanged();
@@ -124,6 +130,37 @@ class MainWindow : public QMainWindow
         // appelable aussi bien depuis le menu que depuis la chaîne "décoder".
         bool applyWorldTxtFile(const QString& worldFile);
 
+        // Décodage de nav1.db vers le nav1.txt du dossier de travail, puis
+        // réalignement des index du projet. Factorisé pour être appelable
+        // depuis « Décoder » et depuis « Recharger » (cf. exigence n°2).
+        bool decodeWorldDbToTxt(QString* errorMessage);
+
+        // Écrit les 15 fichiers _Xxx.txt du projet. Lorsque confirm vaut vrai,
+        // demande d'abord confirmation à l'utilisateur en nommant le projet
+        // chargé (cf. exigence n°3). Retourne true si l'export a été effectué.
+        bool exportProjectTxtFiles(bool confirm);
+
+        // Identifiant de l'aéroport porté par le projet courant (point ident
+        // du premier aéroport), utilisé pour le contrôle de non-existence
+        // avant intégration (cf. exigence n°4).
+        QString currentAirportIdent() const;
+
+        // (Re)positionne l'indicateur d'état en bas à droite de la zone
+        // centrale et le met au premier plan.
+        void positionStatusIndicator();
+
+        // Met à jour l'indicateur d'état des fichiers pour un évènement donné.
+        // L'AIRAC est relu depuis le nav1.txt du dossier de travail.
+        enum class StatusEvent {
+            AppOpened,
+            AirportToProject,
+            ReloadWorld,
+            ExportTxt,
+            DecodeNav1Db,
+            IntegrateWorld
+        };
+        void updateFileStatus(StatusEvent event);
+
         // Assemble bouton "Nouveau" + bouton "Supprimer" + table + éditeur dans
         // un splitter — layout commun à tous les onglets, factorisé pour ne pas
         // le répéter 15 fois.
@@ -181,11 +218,16 @@ class MainWindow : public QMainWindow
 
         navstud::persistence::ProjectStore mStore;
         qint64   mCurrentProjectId = -1;
+        QString  mCurrentProjectName; // nom du projet chargé (pour l'export)
         QAction* mSaveAction = nullptr;
         QAction* mReloadNav1TxtAction = nullptr;
         QAction* mExportTxtAction = nullptr;
         QAction* mDecodeWorldAction = nullptr;
         QAction* mIntegrateWorldAction = nullptr;
+
+        // Petit tableau incrusté en bas à droite indiquant l'état des fichiers
+        // Nav1.db / Nav1.txt / Nav1-2.db et du jeu de .txt extraits.
+        FileStatusIndicator* mStatusIndicator = nullptr;
 
         navstud::userdata::UserProject mProject;
 

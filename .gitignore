@@ -2,24 +2,27 @@
 # FICHIERS ET DOSSIERS NON SUIVIS
 # -------------------------------
 
+# --------------
+# Rappels utiles
+# file  -> ignore le fichier 'file' où qu'il se situe dans l'arbo
+# file* -> ignore les fichiers commençant par 'file' où qu'ils se situent dans l'arbo
+# /file -> ignore le fichier 'file' situé à la racine
+# doss/ -> ignore le dossier 'doss'
+# doss*/ -> ignore tous les dossiers commençant par 'doss'
+
+
 # -----
 # macOS
-# -----
-
 .DS_Store
 **/.DS_Store
 Thumbs.db
 
 
-
-
 # ------
 # Projet
-# ------
-
 .qtcreator
 build/
 build2/
 z_*/
-nav1.txt
-nav*
+/nav*
+Etat_des_fichiers.md

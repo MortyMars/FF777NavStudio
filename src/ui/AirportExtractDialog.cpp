@@ -2,6 +2,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QCompleter>
+#include <QFile>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFormLayout>
@@ -21,6 +22,7 @@
 #include "AirportExtractDialog.h"
 #include "ExtractedProjectBuilder.h"
 #include "Nav1DbPipeline.h"
+#include "WorldFileRewriter.h"
 #include "WorldIndexReader.h"
 
 
@@ -38,6 +40,12 @@ AirportExtractDialog::AirportExtractDialog(navstud::persistence::ProjectStore& s
     auto* sourceRow = new QHBoxLayout;
     mSourceEdit = new QLineEdit(this);
     mSourceEdit->setPlaceholderText(QStringLiteral("Chemin du fichier mondial nav1.txt (livré avec le B777 / pipeline Standard)"));
+
+    // Le fichier mondial visé est par défaut celui du dossier de travail de
+    // l'application. S'il est absent, le champ reste vide et l'utilisateur
+    // choisit un fichier via « Parcourir... ».
+    if (QFile::exists(navstud::tools::Nav1DbPipeline::nav1TxtPath()))
+        mSourceEdit->setText(navstud::tools::Nav1DbPipeline::nav1TxtPath());
     mBrowseSourceButton = new QPushButton(QStringLiteral("Parcourir..."), this);
     mLoadButton = new QPushButton(QStringLiteral("Charger"), this);
     mLoadButton->setEnabled(false);
@@ -248,23 +256,47 @@ void AirportExtractDialog::runExtract()
     const std::shared_ptr<navstud::extract::NavDataBase> db = mDb;
     const QString sourcePath = mSourceEdit->text().trimmed();
 
+    // La suppression/réindexation du fichier mondial n'a de sens que si le
+    // projet est réellement créé (sinon on perdrait l'aéroport sans le
+    // requalifier en projet).
+    const bool createProject = mCreateProjectCheck->isChecked();
+
     setBusy(true);
     mStatusLabel->setText(QStringLiteral("Extraction de l'aéroport %1 en cours...").arg(icao));
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    mBuildWatcher.setFuture(QtConcurrent::run([db, icao, outputPath, sourcePath]() -> BuildOutcome {
+    mBuildWatcher.setFuture(QtConcurrent::run(
+        [db, icao, outputPath, sourcePath, createProject]() -> BuildOutcome {
         BuildOutcome outcome;
         outcome.outputPath = outputPath;
         outcome.icao = icao;
 
         navstud::extract::NavDataBase::ExtractStats stats;
+        navstud::extract::NavDataBase::AirportSelection selection;
         QString error;
-        if (!db->extractAirport(icao, outputPath, &error, &stats)) {
+        if (!db->extractAirport(icao, outputPath, &error, &stats, &selection)) {
             outcome.error = error;
             return outcome;
         }
         outcome.stats = stats;
 
+        // Suppression des enregistrements extraits du fichier mondial puis
+        // réindexation des enregistrements subsistants (avec sauvegarde .bak).
+        if (createProject) {
+            const navstud::extract::WorldFileRewriter::Result removal =
+                navstud::extract::WorldFileRewriter::removeAirport(sourcePath, selection);
+            if (!removal.success) {
+                outcome.error = QStringLiteral("Suppression/réindexation du fichier mondial impossible : %1")
+                                    .arg(removal.error);
+                return outcome;
+            }
+            outcome.removalDone = true;
+            outcome.removedRecords = removal.removedRecords;
+            outcome.danglingReferences = removal.danglingReferences;
+        }
+
+        // Les compteurs (# Count:) sont lus APRÈS la suppression/réindexation
+        // afin que les id du projet s'alignent sur la fin du fichier réduit.
         const navstud::worldindex::WorldIndexReader reader;
         const navstud::worldindex::WorldIndexResult world = reader.readStartingIndices(sourcePath);
         outcome.indices = world.indices;
@@ -279,6 +311,13 @@ void AirportExtractDialog::runExtract()
         }
         outcome.warnings = build.warnings;
         outcome.project = std::move(build.project);
+
+        // Réalignement des id du projet sur les compteurs du fichier réduit :
+        // les références internes passant par les identifiants texte, la
+        // renumérotation ne casse aucun lien.
+        if (createProject && world.success)
+            outcome.project.renumberFrom(world.indices);
+
         outcome.ok = true;
         return outcome;
     }));
@@ -393,9 +432,33 @@ void AirportExtractDialog::onBuildFinished()
     if (name != baseName)
         appendLog(QStringLiteral("  (un projet \"%1\" existait déjà — le nouveau projet est ajouté sous le nom \"%2\".)")
                       .arg(baseName, name));
+
+    // Traçabilité de la suppression/réindexation du fichier mondial.
+    if (outcome.removalDone) {
+        appendLog(QStringLiteral("  %1 enregistrement(s) retiré(s) de %2 puis fichier réindexé.")
+                      .arg(outcome.removedRecords)
+                      .arg(mSourceEdit->text().trimmed()));
+        if (outcome.danglingReferences > 0)
+            appendLog(QStringLiteral("  %1 référence(s) orpheline(s) ramenée(s) à -1.")
+                          .arg(outcome.danglingReferences));
+    }
+
     mStatusLabel->setText(QStringLiteral("Projet \"%1\" ajouté dans la base — rien n'a été remplacé.").arg(name));
     appendLog(QStringLiteral("Projet \"%1\" ajouté dans la base.").arg(name));
     emit projectCreated(targetId, name);
+
+    // Information demandée par le menu : l'aéroport existant a été extrait du
+    // fichier mondial et requalifié en projet.
+    QString info = QStringLiteral(
+        "L'aéroport existant « %1 » a été extrait du fichier mondial et a été requalifié "
+        "en tant que 'PROJET'.").arg(outcome.icao);
+    if (outcome.removalDone) {
+        info += QStringLiteral("\n\n%1 enregistrement(s) ont été retirés de 'nav1.txt' et le fichier "
+                               "a été réindexé.\nUne sauvegarde a été créée : %2.bak")
+                    .arg(outcome.removedRecords)
+                    .arg(mSourceEdit->text().trimmed());
+    }
+    QMessageBox::information(this, QStringLiteral("Aéroport -> Projet"), info);
 }
 
 // -----------------------------------------------------------------------------------------------------------
