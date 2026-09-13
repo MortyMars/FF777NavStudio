@@ -2,10 +2,21 @@
 
 # Déclarations standard
 cmake_minimum_required(VERSION 3.20)
+
+# ----------------------------------------------------------------------------
+# Compilation en mode binaire universel pour macOS
+# ----------------------------------------------------------------------------
+if(APPLE)
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build architectures for macOS")
+endif()
+
+
+# Définition liée au projet
 project(FF777NavStudio VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 
 # ----------------------------------------------------------------------------
 # Auto-détection de Qt : sans Qt Creator, on cherche Qt 6 dans les emplacements
@@ -182,18 +193,6 @@ target_link_libraries(FF777NavStudio PRIVATE
     FF777NavStudioCore
     Qt6::Widgets Qt6::Xml Qt6::Concurrent
 )
-
-
-
-# ----------------------------------------------------------------------------
-# Compilation en mode binaire universel pour macOS
-# ----------------------------------------------------------------------------
-#if(APPLE)
-    #set_target_properties(FF777NavStudio PROPERTIES
-        #OSX_ARCHITECTURES "x86_64;arm64"
-    #)
-#endif()
-
 
 
 # ----------------------------------------------------------------------------
