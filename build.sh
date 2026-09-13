@@ -60,9 +60,10 @@ configure_and_build() {
     cmake -S "${PROJECT_DIR}" -B "${BUILD_DIR}" \
         -DCMAKE_BUILD_TYPE=Release \
         "${CMAKE_PREFIX_ARGS[@]}" \
-        -DCMAKE_OSX_ARCHITECTURES="$(uname -m)"
+        -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
     cmake --build "${BUILD_DIR}" --parallel "${JOBS}"
 }
+
 
 deploy_macos() {
     local macdeployqt="${QT_PREFIX}/bin/macdeployqt"

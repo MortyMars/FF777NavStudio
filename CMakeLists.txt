@@ -228,4 +228,27 @@ target_link_libraries(FF777NavStudioCli PRIVATE
 )
 
 
+# ----------------------------------------------------------------------------
+# --- DÉPLOIEMENT MACOS ---
+# ----------------------------------------------------------------------------
+if(APPLE)
+    # 1. Trouver le chemin de l'outil macdeployqt
+    get_target_property(QT_EXECUTABLE_PATH Qt6::qmake LOCATION)
+    get_filename_component(QT_BIN_DIR "${QT_EXECUTABLE_PATH}" DIRECTORY)
+    find_program(MACDEPLOYQT_EXECUTABLE macdeployqt HINTS "${QT_BIN_DIR}")
+
+    if(MACDEPLOYQT_EXECUTABLE)
+        message(STATUS "macdeployqt trouvé : ${MACDEPLOYQT_EXECUTABLE}")
+
+        # 2. Exécuter macdeployqt automatiquement après la compilation
+        add_custom_command(TARGET FF777NavStudio POST_BUILD
+            COMMAND "${MACDEPLOYQT_EXECUTABLE}" "$<TARGET_FILE_DIR:FF777NavStudio>/../.." -verbose=1
+            COMMENT "Création du bundle autonome (indépendant de Qt)..."
+        )
+    else()
+        message(WARNING "macdeployqt introuvable. L'application ne sera pas autonome.")
+    endif()
+endif()
+
+
 
