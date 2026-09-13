@@ -327,6 +327,10 @@ MainWindow::MainWindow(QWidget *parent)
     QAction* documentationAction = helpMenu->addAction(QStringLiteral("Objectifs ..."));
     connect(documentationAction,    &QAction::triggered, this, &MainWindow::onDocumentation);
 
+    // Objectifs
+    QAction* prisenmainAction = helpMenu->addAction(QStringLiteral("Prise en main ..."));
+    connect(prisenmainAction,    &QAction::triggered, this, &MainWindow::onPrisenmain);
+
 
 
 
@@ -2032,6 +2036,49 @@ void MainWindow::onDocumentation()
 
     dialog.setWindowTitle(QStringLiteral("Finalité de l'application — FF777 NavStudio"));
     dialog.resize(720, 560);
+
+    auto* layout = new QVBoxLayout(&dialog);
+    auto* closeButton = new QPushButton(QStringLiteral("Fermer"));
+
+    layout->addWidget(textBrowser);
+    layout->addWidget(closeButton, 0, Qt::AlignRight);
+
+    connect(closeButton, &QPushButton::clicked, &dialog, &QDialog::accept);
+
+    dialog.exec();
+}
+
+
+// -----------------------------------------------------------------------------------------------------------
+// Ouvre le document Markdown de prise en main dans une boîte de dialogue rendant le
+// Markdown (rôle Qt :: MarkdownText du QTextBrowser) — à défaut d'un
+// navigateur externe, l'aide reste lisible dans l'application elle-même.
+void MainWindow::onPrisenmain()
+{
+    // Dans le code on utilise l'alias de la ressource (son chemin virtuel) càd ':/PriseEnMain.md'
+    // cf. le fichier 'docs.qrc' qui pointe vers la ressource réelle '../../docs/PriseEnMain.md'
+    QFile docFile(QStringLiteral(":/PriseEnMain.md"));
+
+    if (!docFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::warning(
+            this,
+            QStringLiteral("Documentation"),
+            QStringLiteral("Documents Markdown introuvable.")
+            );
+        return;
+    }
+
+    const QString markdown = QString::fromUtf8(docFile.readAll());
+
+    auto* textBrowser = new QTextBrowser(this);
+
+    textBrowser->setOpenExternalLinks(true);
+    textBrowser->setMarkdown(markdown);
+
+    QDialog dialog(this);
+
+    dialog.setWindowTitle(QStringLiteral("Prise en main de l'application — FF777 NavStudio"));
+    dialog.resize(1100, 800);
 
     auto* layout = new QVBoxLayout(&dialog);
     auto* closeButton = new QPushButton(QStringLiteral("Fermer"));

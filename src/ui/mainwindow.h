@@ -123,6 +123,7 @@ class MainWindow : public QMainWindow
         void onIntegrateWorldFile();
         void onAbout();
         void onDocumentation();
+        void onPrisenmain();
 
     private:
         void loadProjectIntoUi(qint64 id, const QString& name);

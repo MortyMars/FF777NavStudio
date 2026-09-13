@@ -183,6 +183,19 @@ target_link_libraries(FF777NavStudio PRIVATE
     Qt6::Widgets Qt6::Xml Qt6::Concurrent
 )
 
+
+
+# ----------------------------------------------------------------------------
+# Compilation en mode binaire universel pour macOS
+# ----------------------------------------------------------------------------
+#if(APPLE)
+    #set_target_properties(FF777NavStudio PROPERTIES
+        #OSX_ARCHITECTURES "x86_64;arm64"
+    #)
+#endif()
+
+
+
 # ----------------------------------------------------------------------------
 # Bundle macOS : application autonome, double-cliquable depuis le Finder.
 # ----------------------------------------------------------------------------

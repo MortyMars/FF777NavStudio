@@ -14,15 +14,12 @@
 # -----
 # macOS
 .DS_Store
-**/.DS_Store
 Thumbs.db
 
 
 # ------
 # Projet
 .qtcreator
-build/
-build2/
+build*/
 z_*/
 /nav*
-Etat_des_fichiers.md

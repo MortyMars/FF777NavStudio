@@ -1,24 +1,50 @@
 <RCC>
 
+<!-- LE FICHIER EST SIMPLIFIABLE SACHANT QUE LES PRÉFIXES SONT IDENTIQUES
+MAIS PAR CHOIX JE LE LAISSE SOUS CETTE FORME POUR CONSERVER LA SÉPARATION
+DES RESSOURCES -->
+
+<!-- FICHIER README.MD -->
 	<qresource prefix="/">
         <!--
-            - avec le préfixe, le chemin VIRTUEL du fichier est :/Readme.md
+            - le chemin VIRTUEL du fichier (avec le préfixe) est :/Readme.md
               c'est ce chemin qui doit être employé dans le code
             - le chemin RÉEL du fichier est relatif au dossier de compilation
               d'où la forme ../../Readme.md
         -->
     	<file alias="Readme.md">../../Readme.md</file>
+	
 	</qresource>
     
 
-    <qresource prefix="/">
+<!-- ICONE DE BOITE DE DIALOGUE -->
+    	<qresource prefix="/">
         <!--
-            - avec le préfixe, le chemin VIRTUEL de l'icone est :/app_icon.png
+            - le chemin VIRTUEL de l'icone (avec le préfixe) est :/app_icon.png
               c'est ce chemin qui doit être employé dans le code
             - le chemin RÉEL du fichier est relatif au dossier de compilation 
               d'où la forme ../../icones/small_app_icon.png
         -->
     	<file alias="app_icon.png">../../icones/small_app_icon.png</file>
+	
+	</qresource>
+
+
+<!-- FICHIER PRISEENMAIN.MD -->
+	<qresource prefix="/">
+        <!--
+            - le chemin VIRTUEL du fichier (avec le préfixe) est :/PriseEnMain.md
+              c'est ce chemin qui doit être employé dans le code
+            - le chemin RÉEL du fichier est relatif au dossier de compilation 
+              d'où la forme ../../docs/PriseEnMain.md
+        -->
+    	<file alias="PriseEnMain.md">../../docs/PriseEnMain.md</file>
+
+
+	<!-- Ajout des images liées à PriseEnMain.md -->
+	<file alias="Interface.jpg">../../docs/Interface.jpg</file>
+        <file alias="MenuFichier.jpg">../../docs/MenuFichier.jpg</file>
+
 	</qresource>
 
 </RCC>
