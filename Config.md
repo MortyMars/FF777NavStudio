@@ -128,5 +128,5 @@ build/          Dossier de build du projet
 
 L'application stocke les données saisies pour les différents projets créés, dans une base de données locale '**projects.sqlite**' positionnée en :
 - sous macOS   : '~/Library/Application Support/FF777NavStudio'
-- sous Windows : '%USERPROFILE%\AppData\Roaming\FF777NavStudio'
+- sous Windows : '%USERPROFILE%\AppData\Roaming\FF777NavStudio' (l'affichage des fichiers cachés doit être activé)
 

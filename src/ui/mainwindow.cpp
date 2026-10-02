@@ -127,6 +127,7 @@ MainWindow::MainWindow(QWidget *parent)
     // seul coup d'œil, sans sous-menu héarchique.
     auto* mainMenu = menuBar()->addMenu(QStringLiteral("Fichier"));
 
+
     // ===================================================================
     // ADDBLOCKTITLE
     // Méthode créant un titre de bloc non cliquable servant d'entête
@@ -139,7 +140,7 @@ MainWindow::MainWindow(QWidget *parent)
         header->setDefaultWidget(headerLabel);
         mainMenu->addAction(header);
 
-        header->setEnabled(true);   // 'true' pour une police visible
+        header->setEnabled(true);   // 'true' pour une police non grisée
 
         return header;
 
@@ -169,13 +170,16 @@ MainWindow::MainWindow(QWidget *parent)
     mSaveAction->setEnabled(false);
 
     mReloadNav1TxtAction = mainMenu->addAction(QStringLiteral(" Recharger le fichier mondial 'nav1.txt'"));
+    /* Abandon du tooltip qui ne fonctionne pas nativement sous macOS
     mReloadNav1TxtAction->setToolTip(
         QStringLiteral("Réaligne les id du projet sur un fichier mondial mis à jour (nouvelles \"# Count:\")"));
+    */
     mReloadNav1TxtAction->setEnabled(false);
 
     mExportTxtAction = mainMenu->addAction(QStringLiteral(" Exporter les fichiers .txt du projet"));
-    mExportTxtAction->setToolTip(QStringLiteral("Écrit les 15 fichiers _Xxx.txt (Point, NAV, LEG, ...) "
-                                             "dans le dossier de l'application"));
+    /* Abandon du tooltip qui ne fonctionne pas nativement sous macOS
+    mExportTxtAction->setToolTip(
+        QStringLiteral("Écrit les 15 fichiers _Xxx.txt (Point, NAV, LEG, ...) dans le dossier de l'application")); */
     mExportTxtAction->setEnabled(false);
     mainMenu->addSeparator();
 
@@ -185,22 +189,23 @@ MainWindow::MainWindow(QWidget *parent)
     // se déroulent dans le dossier de l'application (celui de l'exécutable).
     addBlockTitle(QStringLiteral("  SUITE à MàJ des AIRACS :"));
 
+    // Menu "Décoder..."
     auto* decodeNav1dbAction = mainMenu->addAction(QStringLiteral(" Décoder 'nav1.db' -> 'nav1.txt'"));
     mDecodeWorldAction = decodeNav1dbAction;
-
+    /* Abandon du tooltip qui ne fonctionne pas nativement sous macOS
     decodeNav1dbAction->setToolTip(
         QStringLiteral("Décode nav1.db en nav1.txt (dossier de l'appli), "
-                       "puis recharge ce fichier pour aligner les id du projet"));
-
+                       "puis recharge ce fichier pour aligner les id du projet")); */
     decodeNav1dbAction->setEnabled(false);
 
+
+    // Menu "Compléter ... et réencoder ..."
     auto* integrateWorldAction = mainMenu->addAction(QStringLiteral(" Compléter 'nav1.txt' et réencoder 'nav1.db'"));
     mIntegrateWorldAction = integrateWorldAction;
-
+    /* Abandon du tooltip qui ne fonctionne pas nativement sous macOS
     integrateWorldAction->setToolTip(
-        QStringLiteral("Intègre les 15 fichiers _Xxx.txt du projet dans le nav1.txt, "
-                       "réencode en nav1.db et copie le tout à la destination X-Plane"));
-
+        QStringLiteral("Intègre les 15 fichiers _Xxx.txt du projet en cours, dans le nav1.txt, "
+                       "puis réencode en nav1.db et copie le tout à la destination X-Plane")); */
     integrateWorldAction->setEnabled(false);
 
 
@@ -274,7 +279,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(openProjectAction,      &QAction::triggered, this, &MainWindow::onOpenProject);
     connect(mSaveAction,            &QAction::triggered, this, &MainWindow::onSaveProject);
     connect(mReloadNav1TxtAction,   &QAction::triggered, this, &MainWindow::onReloadNav1TxtFile);
-    connect(mExportTxtAction,          &QAction::triggered, this, &MainWindow::onExportTxtFiles);
+    connect(mExportTxtAction,       &QAction::triggered, this, &MainWindow::onExportTxtFiles);
     connect(decodeNav1dbAction,     &QAction::triggered, this, &MainWindow::onDecodeNav1dbFile);
     connect(integrateWorldAction,   &QAction::triggered, this, &MainWindow::onIntegrateWorldFile);
     connect(extractAirportAction,   &QAction::triggered, this, &MainWindow::onExtractAirport);
@@ -329,7 +334,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Objectifs
     QAction* prisenmainAction = helpMenu->addAction(QStringLiteral("Prise en main ..."));
-    connect(prisenmainAction,    &QAction::triggered, this, &MainWindow::onPrisenmain);
+    connect(prisenmainAction,       &QAction::triggered, this, &MainWindow::onPrisenmain);
 
 
 
@@ -345,14 +350,14 @@ MainWindow::MainWindow(QWidget *parent)
         orderFnFor(&mProject.points()),
         {
             idColumn(),
-            textColumn(QStringLiteral("Ident"), &mProject.points(), &UserPoint::ident),
-            doubleColumn(QStringLiteral("Latitude"), &mProject.points(), &UserPoint::latitude, 12),
-            doubleColumn(QStringLiteral("Longitude"), &mProject.points(), &UserPoint::longitude, 12),
-            doubleColumn(QStringLiteral("Var. magn."), &mProject.points(), &UserPoint::magVar, 6),
-            doubleColumn(QStringLiteral("Cap hold"), &mProject.points(), &UserPoint::holdCourse, 6),
+            textColumn(QStringLiteral("Ident"),         &mProject.points(), &UserPoint::ident),
+            doubleColumn(QStringLiteral("Latitude"),    &mProject.points(), &UserPoint::latitude, 12),
+            doubleColumn(QStringLiteral("Longitude"),   &mProject.points(), &UserPoint::longitude, 12),
+            doubleColumn(QStringLiteral("Var. magn."),  &mProject.points(), &UserPoint::magVar, 6),
+            doubleColumn(QStringLiteral("Cap hold"),    &mProject.points(), &UserPoint::holdCourse, 6),
             doubleColumn(QStringLiteral("Dist hold (m)"), &mProject.points(), &UserPoint::holdDistInMeters, 3),
-            doubleColumn(QStringLiteral("Temps hold"), &mProject.points(), &UserPoint::holdTime, 3),
-            intColumn(QStringLiteral("Sens hold"), &mProject.points(), &UserPoint::holdSide),
+            doubleColumn(QStringLiteral("Temps hold"),  &mProject.points(), &UserPoint::holdTime, 3),
+            intColumn(QStringLiteral("Sens hold"),      &mProject.points(), &UserPoint::holdSide),
         },
         this
     );
@@ -3831,8 +3836,9 @@ bool MainWindow::exportProjectTxtFiles(bool confirm)
             this,
             QStringLiteral("Exporter les fichiers .txt du projet"),
             QStringLiteral(
-                "Le jeu de fichiers txt actuel va être remplacé par celui du présent projet « %1 »."
-                "\n\nContinuer ?").arg(projectName),
+                "L'ensemble des données du projet '%1' tel qu'actuellement chargé, vont être "
+                "ajoutées et encodées pour enrichir le fichier 'nav1.db' fourni à X-Plane."
+                "\nContinuer ?").arg(projectName),
             QMessageBox::Yes | QMessageBox::No,
             QMessageBox::No
         );
